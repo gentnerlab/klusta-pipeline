@@ -1,0 +1,91 @@
+# Neuronexus A1x16-5mm50 probe
+
+# neuronexus sites correspond to the following channels (array indices) 
+
+# site:channel
+# s = {1: 0,
+#      2: 1,
+#      3: 2,
+#      4: 3,
+#      5: 4,
+#      6: 5,
+#      7: 6,
+#      8: 7,
+#      9: 8,
+#      10: 9,
+#      11: 10,
+#      12: 11,
+#      13: 12,
+#      14: 13,
+#      15: 14,
+#      16: 15,
+#      }
+s = {1: 4,
+     2: 6,
+     3: 2,
+     4: 10,
+     5: 8,
+     6: 0,
+     7: 12,
+     8: 14,
+     9: 15,
+     10: 13,
+     11: 1,
+     12: 9,
+     13: 11,
+     14: 3,
+     15: 7,
+     16: 5,
+     }
+
+
+channel_groups = {
+    # Shank index.
+    0:
+        {   
+            # List of channels to keep for spike detection.
+            'channels': s.values(),
+            
+            # Adjacency graph. Dead channels will be automatically discarded
+            # by considering the corresponding subgraph.
+            'graph': [
+                (s[6], s[11]),
+                (s[11], s[3]),
+                (s[3], s[14]),
+                (s[14], s[10]),
+                (s[10], s[8]),
+                (s[8], s[2]),
+                (s[2], s[15]),
+                (s[15], s[5]),
+                (s[5], s[12]),
+                (s[12], s[4]),
+                (s[4], s[13]),
+                (s[13], s[7]),
+                (s[7], s[10]),
+                (s[10], s[8]),
+                (s[8], s[9]),
+            ],
+            
+            # 2D positions of the channels, in microns.
+            # NOTE: For visualization purposes
+            # in KlustaViewa, the unit doesn't matter.
+            'geometry': {
+                s[6]: (0, 0),
+                s[11]: (0, 50),
+                s[3]: (0, 100),
+                s[14]: (0, 150),
+                s[1]: (0, 200),
+                s[16]: (0, 250),
+                s[2]: (0, 300),
+                s[15]: (0, 350),
+                s[5]: (0, 400),
+                s[12]: (0, 450),
+                s[4]: (0, 500),
+                s[13]: (0, 550),
+                s[7]: (0, 600),
+                s[10]: (0, 650),
+                s[8]: (0, 700),
+                s[9]: (0, 750),
+            }
+    }
+}
