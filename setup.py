@@ -13,7 +13,7 @@ setup(
     entry_points={
         'console_scripts': [
             's2mat_to_kwd = klusta_pipeline.s2mat_to_kwd:main',
-            'make_s2mat_list = kklusta_pipeline.make_s2mat_list:main'
+            'make_s2mat_list = klusta_pipeline.make_s2mat_list:main'
         ],
     },
 )
