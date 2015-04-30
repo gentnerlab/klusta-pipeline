@@ -38,19 +38,12 @@ CHANMAP = {
 
 def read_s2mat(mat,site_map):
     with h5.File(mat, 'r') as f_in:
-        n_samp = np.inf
-
-        # hack to deal with weird Spike2 export. Try to delete.
-        for ch, site in enumerate(site_map):
-            length = f_in[site]['length'][0,0]
-            if n_samp > length:
-                n_samp = length
-
+        n_samp = int(np.amin([f_in[site]['length'][0,0] for ch, site in enumerate(site_map)]))
         shape = (n_samp,len(site_map)) # samples,channels
         data = np.empty(shape,np.int16)
 
         for ch, site in enumerate(site_map):
-            data[:,ch] = f_in[site]['values'][0,:]
+            data[:,ch] = f_in[site]['values'][0,:n_samp]
         
     return data
 
@@ -88,35 +81,39 @@ def main():
         'exp': exp,
         }
 
-    # open KWD file (destination HDF5)
-    print 'Opening %s' % kwd
-    with h5.File(kwd, 'w') as kwd_f, open(args.mat_list,'r') as mlist_f:
-        # for each mat file in the list
-        for rec, mat in enumerate(mlist_f):
-            mat = mat.strip()
-            # read in data from MAT and write to KWD
-            print 'Copying %s into Recording/%s' % (mat,rec)
-            data = read_s2mat(mat,CHANMAP[args.probe])
-            kwd_f.create_dataset('recordings/%i/data' % rec, data=data)
+    if not os.path.exists(kwd):
+        # open KWD file (destination HDF5)
+        print 'Opening %s' % kwd
+        with h5.File(kwd, 'w') as kwd_f, open(args.mat_list,'r') as mlist_f:
+            # for each mat file in the list
+            for rec, mat in enumerate(mlist_f):
+                mat = mat.strip()
+                # read in data from MAT and write to KWD
+                print 'Copying %s into Recording/%s' % (mat,rec)
+                data = read_s2mat(mat,CHANMAP[args.probe])
+                kwd_f.create_dataset('recordings/%i/data' % rec, data=data)
 
-            # grab parameters from first MAT file
-            if rec == 0:
-                params['fs'] = get_fs_from_mat(mat,CHANMAP[args.probe])
-                params['nchan'] = data.shape[1]
-            else: # make sure all recordings have the same sampling rate and num chans
-                assert params['fs'] == get_fs_from_mat(mat,CHANMAP[args.probe])
-                assert params['nchan'] == data.shape[1]
+                # grab parameters from first MAT file
+                if rec == 0:
+                    params['fs'] = get_fs_from_mat(mat,CHANMAP[args.probe])
+                    params['nchan'] = data.shape[1]
+                else: # make sure all recordings have the same sampling rate and num chans
+                    assert params['fs'] == get_fs_from_mat(mat,CHANMAP[args.probe])
+                    assert params['nchan'] == data.shape[1]
+    else: 
+        print '%s already exists, please delete and run again' % kwd
+        raise IOError('%s already exists, please delete and run again' % kwd)
 
     # copy over the spike template
     try:
-        copyfile(os.path.join(KK_PIPELINE_DIR,params['probe'],os.getcwd()))
+        copyfile(os.path.join(KK_PIPELINE_DIR, params['probe'] + ".prb"), os.path.join(os.getcwd(), params['probe'] + ".prb"))
     except IOError:
-        print "Could not copy probe file %s to current directory. You'll have to do this manually." % params['probe']
+        print "Could not copy probe file %s to current directory. You'll have to do this manually." % os.path.join(KK_PIPELINE_DIR,params['probe'] + ".prb")
 
     # read the parameters template
     params_template_in = os.path.join(KK_PIPELINE_DIR,'params.template')
     with open(params_template_in,'r') as src:
-        params_template = Template(params_template_in)
+        params_template = Template(src.read())
 
     # write the parameters
     with open('params.prm', 'w') as pf:
