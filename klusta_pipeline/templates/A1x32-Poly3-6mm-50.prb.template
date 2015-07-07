@@ -1,0 +1,8 @@
+# neuronexus sites correspond to the following channels (array indices) 
+
+     
+
+
+channel_groups = clean_dead_channels(channel_groups)
+channel_groups = build_geometries(channel_groups)
+
