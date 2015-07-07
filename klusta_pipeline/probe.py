@@ -117,22 +117,6 @@ def get_graph_from_geometry(geometry):
                 pass
     return edges
 
-def get_graph_from_geometry(geometry):
-    
-    # let's transform the geometry into lists of channel names and coordinates
-    chans,coords = zip(*[(ch,xy) for ch,xy in geometry.iteritems()])
-    
-    # we'll perform the triangulation and extract the 
-    tri = spatial.Delaunay(coords)
-    
-    # then build the list of edges from the triangulation
-    indices, indptr = tri.vertex_neighbor_vertices
-    edges = []
-    for k in range(indices.shape[0]-1):
-        for j in indptr[indices[k]:indices[k+1]]:
-            edges.append((chans[k],chans[j]))
-    return edges
-
 def clean_dead_channels(channel_groups):
     new_group = {}
     for gr, group in channel_groups.iteritems():
