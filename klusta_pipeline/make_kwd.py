@@ -24,7 +24,7 @@ def get_args():
                        help='destination directory for kwd and other files')
     parser.add_argument('-s','--sampling_rate',dest='fs',type=float, default=20000.0,
                        help='target sampling rate for waveform alignment')
-    parser.add_argument('-c','--common_average_ref',dest='car',action='store_true', default=False,
+    parser.add_argument('-c','--common_average_ref',dest='car',type=str, default='',
                        help='turns on common average referencing')
     parser.add_argument('-x','--drop',dest='omit',type=str, default='',
                        help='comma-separate list of channel labels to drop if they exist')

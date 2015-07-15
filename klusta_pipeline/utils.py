@@ -6,6 +6,7 @@ import h5py as h5
 from scipy import interpolate
 from klusta_pipeline import MAX_CHANS
 import datetime as dt
+from sklearn.linear_model import LinearRegression
 
 def validate_merge(import_list,omit):
     mat_data = []
@@ -130,12 +131,29 @@ def chunkit(t,v):
         yield t,v
 
 def do_car(data):
-    '''for each channel, subtract off the mean of the other channels'''
+    '''common average reference. 
+    for each channel, subtract off the mean of the other channels
+    '''
     car_data = np.empty(data.shape,data.dtype)
     for ch,waveform in enumerate(data.T):
         common_av = np.vstack((data.T[:ch,:],data.T[ch+1:,:])).mean(axis=0)
         car_data[:,ch] = waveform-common_av
     return car_data
+
+def do_war(data):
+    '''common average reference. 
+    for each channel, subtract off the weighted average of the other channels
+    '''
+
+    linreg = LinearRegression()
+    car_data = np.empty(data.shape,data.dtype)
+    for ch,waveform in enumerate(data.T):
+        X = np.vstack((data.T[:ch,:],data.T[ch+1:,:]))
+        linreg.fit(X,waveform)
+
+        car_data[:,ch] = waveform - linreg.predict(X)
+    return car_data
+
 
 def realign(r,chans,fs):
 
@@ -163,6 +181,9 @@ def realign(r,chans,fs):
 def transform_recording(r,chans,fs,car):
     rec = realign(r,chans,fs)
     rec['data'] -= rec['data'].mean(axis=0) # zero mean
-    if car==True:
+    if 'c' in car:
         rec['data'] = do_car(rec['data'])
+    elif 'w' in car:
+        rec['data'] = do_war(rec['data'])
+
     return rec
