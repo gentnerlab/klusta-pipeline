@@ -149,9 +149,9 @@ def do_war(data):
     car_data = np.empty(data.shape,data.dtype)
     for ch,waveform in enumerate(data.T):
         X = np.vstack((data.T[:ch,:],data.T[ch+1:,:]))
-        linreg.fit(X,waveform)
+        linreg.fit(X.T,waveform)
 
-        car_data[:,ch] = waveform - linreg.predict(X)
+        car_data[:,ch] = waveform - linreg.predict(X.T)
     return car_data
 
 
