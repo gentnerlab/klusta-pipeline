@@ -5,7 +5,7 @@ import glob
 from klusta_pipeline.maps import port_site
 from klusta_pipeline.dataio import load_recordings, load_catlog
 from klusta_pipeline.dataio import save_info, save_recording, save_chanlist, save_probe, save_parameters
-from klusta_pipeline.utils import get_import_list, validate_merge, transform_recording
+from klusta_pipeline.utils import get_import_list, validate_merge, transform_recording, calc_weights
 from klusta_pipeline.probe import get_channel_groups, clean_dead_channels, build_geometries
 
 # assume spike2 export to mat with the following parameters:
@@ -22,10 +22,12 @@ def get_args():
                        help='directory containing all of the mat files to compile')
     parser.add_argument('dest', default = './', nargs='?',
                        help='destination directory for kwd and other files')
-    parser.add_argument('-s','--sampling_rate',dest='fs',type=float, default=20000.0,
+    parser.add_argument('-s','--sampling_rate',dest='fs',type=float, default=None,
                        help='target sampling rate for waveform alignment')
-    parser.add_argument('-c','--common_average_ref',dest='car',type=str, default='',
+    parser.add_argument('-c','--common_average_ref',dest='car',action='store_true',
                        help='turns on common average referencing')
+    parser.add_argument('-w','--weighted',dest='weighted',action='store_true',
+                       help='weights channels for common average referencing')
     parser.add_argument('-x','--drop',dest='omit',type=str, default='',
                        help='comma-separate list of channel labels to drop if they exist')
 
@@ -61,23 +63,35 @@ def main():
     save_chanlist(dest,chans,port_map)
     save_probe(args.probe,chans,port_map,dest)
 
+    fs = 1.0 / mat_data[0][chans[0]]['interval'] if args.fs is None else args.fs
+
     info['params'] = {
         'exp': info['name'],
-        'fs': args.fs,
+        'fs': fs,
         'nchan': len(chans),
         'probe': args.probe,
     }
     save_parameters(info['params'],dest)
     save_info(dest,info)
 
-    rec_indx = 0
+    rec_list = []
     # print import_list
     for import_file in import_list:
         recordings = load_recordings(import_file,chans)
         for r in recordings:
-            rec = transform_recording(r,chans,args.fs,args.car)
-            save_recording(kwd,rec,rec_indx)
-            rec_indx += 1
+            rec = realign(r,chans,args.fs)
+            rec['data'] -= rec['data'].mean(axis=0)
+            rec_list.append(rec)
+
+    weights = calc_weights(rec_list) if args.weighted else None
+
+    for indx, rec in enumerate(rec_list):
+        if args.weighted:
+            rec['data'] = do_war(rec['data'],weights)
+        elif args.car:
+            rec['data'] = do_car(rec['data'])
+
+        save_recording(kwd,rec,indx)
 
 if __name__ == '__main__':
     main()

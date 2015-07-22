@@ -35,6 +35,8 @@ def validate_merge(import_list,omit):
         # check if all files have same chans
         for ch in ref['chans']:
             assert ch in chk['chans']
+            # check if all files have same sampling rate
+            assert ref[ch]['interval']==chk[ch]['interval']
 
     return mat_data
 
@@ -178,12 +180,11 @@ def realign(r,chans,fs):
 
     return rec
 
-def transform_recording(r,chans,fs,car):
-    rec = realign(r,chans,fs)
-    rec['data'] -= rec['data'].mean(axis=0) # zero mean
-    if 'c' in car:
-        rec['data'] = do_car(rec['data'])
-    elif 'w' in car:
-        rec['data'] = do_war(rec['data'])
-
-    return rec
+def calc_weights(rec_list):
+    data = np.vstack([r['data'] for r in rec_list])
+    coeffs = []
+    for ch,waveform in enumerate(data.T):
+        X = np.vstack((data.T[:ch,:],data.T[ch+1:,:]))
+        linreg.fit(X,waveform)
+        coeffs.append(linreg.coeff_)
+    return coeffs
