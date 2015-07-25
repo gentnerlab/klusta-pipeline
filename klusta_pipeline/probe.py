@@ -87,7 +87,7 @@ def get_channel_groups(probe,s):
             }
         }
     else:
-        raise Error('probe not found')
+        raise Exception('probe not found')
 
     return channel_groups
 

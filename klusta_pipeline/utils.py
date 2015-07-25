@@ -36,7 +36,7 @@ def validate_merge(import_list,omit):
         for ch in ref['chans']:
             assert ch in chk['chans']
             # check if all files have same sampling rate
-            assert ref[ch]['interval']==chk[ch]['interval']
+            #assert ref[ch]['interval']==chk[ch]['interval']
 
     return mat_data
 
@@ -142,21 +142,6 @@ def do_car(data):
         car_data[:,ch] = waveform-common_av
     return car_data
 
-def do_war(data):
-    '''common average reference. 
-    for each channel, subtract off the weighted average of the other channels
-    '''
-
-    linreg = LinearRegression()
-    car_data = np.empty(data.shape,data.dtype)
-    for ch,waveform in enumerate(data.T):
-        X = np.vstack((data.T[:ch,:],data.T[ch+1:,:]))
-        linreg.fit(X.T,waveform)
-
-        car_data[:,ch] = waveform - linreg.predict(X.T)
-    return car_data
-
-
 def realign(r,chans,fs):
 
     start = np.amax([r[lbl]['times'][0] for lbl in chans])
@@ -181,10 +166,21 @@ def realign(r,chans,fs):
     return rec
 
 def calc_weights(rec_list):
-    data = np.vstack([r['data'] for r in rec_list])
+    linreg = LinearRegression()
+    data = np.vstack(tuple(r['data'] for r in rec_list))
     coeffs = []
     for ch,waveform in enumerate(data.T):
         X = np.vstack((data.T[:ch,:],data.T[ch+1:,:]))
-        linreg.fit(X,waveform)
-        coeffs.append(linreg.coeff_)
+        linreg.fit(X.T,waveform)
+        coeffs.append(linreg.coef_)
     return coeffs
+
+def do_war(data,weights):
+    '''common average reference. 
+    for each channel, subtract off the weighted average of the other channels
+    '''
+    car_data = np.empty(data.shape,data.dtype)
+    for ch,(waveform,w) in enumerate(zip(data.T,weights)):
+        X = np.vstack((data.T[:ch,:],data.T[ch+1:,:]))
+        car_data[:,ch] = waveform - X.T.dot(w)
+    return car_data
