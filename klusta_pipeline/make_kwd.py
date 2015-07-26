@@ -50,7 +50,7 @@ def main():
     info['exports'] = load_catlog(catlog)
     import_list = get_import_list(path,info['exports'])
     for item in import_list:
-        assert os.path.exists(item)
+        assert os.path.exists(item), item
 
     omit = args.omit.split(',')
     mat_data = validate_merge(import_list,omit)
