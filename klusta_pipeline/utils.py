@@ -4,6 +4,7 @@ import itertools
 import numpy as np
 import h5py as h5
 from scipy import interpolate
+from random import sample
 from klusta_pipeline import MAX_CHANS
 import datetime as dt
 from sklearn.linear_model import LinearRegression
@@ -165,20 +166,21 @@ def realign(r,chans,fs):
 
     return rec
 
+def subsample_data(data,npts=1000000,axis=0):
+    pts = data.shape[0]
+    indx = sample(range(pts), npts) if pts > npts else range(pts)
+    return data[indx,:]
+
 def calc_weights(rec_list):
     linreg = LinearRegression()
     data = np.vstack(tuple(r['data'] for r in rec_list))
     coeffs = []
-    npts = data.shape[0]
-    spts = 1000000
-    if npts > spts:
-        indx = np.random.sample(range(npts), spts)
-    else:
-        indx = range(npts)
+    
+    data = subsample_data(data)
 
     for ch,waveform in enumerate(data.T):
-        X = np.vstack((data.T[:ch,indx],data.T[ch+1:,indx]))
-        linreg.fit(X.T,waveform[indx])
+        X = np.vstack((data.T[:ch,:],data.T[ch+1:,:]))
+        linreg.fit(X.T,waveform)
         coeffs.append(linreg.coef_)
     return coeffs
 
