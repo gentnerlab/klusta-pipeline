@@ -169,9 +169,16 @@ def calc_weights(rec_list):
     linreg = LinearRegression()
     data = np.vstack(tuple(r['data'] for r in rec_list))
     coeffs = []
+    npts = data.shape[0]
+    spts = 1000000
+    if npts > spts:
+        indx = np.random.sample(range(npts), spts)
+    else:
+        indx = range(npts)
+
     for ch,waveform in enumerate(data.T):
-        X = np.vstack((data.T[:ch,:],data.T[ch+1:,:]))
-        linreg.fit(X.T,waveform)
+        X = np.vstack((data.T[:ch,indx],data.T[ch+1:,indx]))
+        linreg.fit(X.T,waveform[indx])
         coeffs.append(linreg.coef_)
     return coeffs
 
