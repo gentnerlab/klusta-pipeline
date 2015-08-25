@@ -54,10 +54,14 @@ def main():
 
     omit = args.omit.split(',')
     mat_data = validate_merge(import_list,omit)
-    chans = mat_data[0]['chans']
+
+    chans = set(mat_data[0]['chans'])
+    for d2 in mat_data[1:]:
+        chans = chans.intersection(d2['chans'])
+    chans = list(chans)
 
     for i,m in zip(info['exports'],mat_data):
-        i['chans'] = m['chans']
+        i['chans'] = chans
 
     port_map = port_site[args.rig]
     save_chanlist(dest,chans,port_map)

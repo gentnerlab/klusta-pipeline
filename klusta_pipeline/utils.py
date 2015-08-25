@@ -29,15 +29,15 @@ def validate_merge(import_list,omit):
             }
         )
     assert len(mat_data)>0, 'No mat files found'
-    ref = mat_data[0]
-    for chk in mat_data[1:]:
-        # check if all files have same number of chans
-        assert len(ref['chans'])==len(chk['chans'])
-        # check if all files have same chans
-        for ch in ref['chans']:
-            assert ch in chk['chans']
-            # check if all files have same sampling rate
-            #assert ref[ch]['interval']==chk[ch]['interval']
+    # ref = mat_data[0]
+    # for chk in mat_data[1:]:
+    #     # check if all files have same number of chans
+    #     assert len(ref['chans'])==len(chk['chans'])
+    #     # check if all files have same chans
+    #     for ch in ref['chans']:
+    #         assert ch in chk['chans']
+    #         # check if all files have same sampling rate
+    #         #assert ref[ch]['interval']==chk[ch]['interval']
 
     return mat_data
 
