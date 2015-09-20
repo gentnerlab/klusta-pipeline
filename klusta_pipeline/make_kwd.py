@@ -76,7 +76,6 @@ def main():
         'probe': args.probe,
     }
     save_parameters(info['params'],dest)
-    save_info(dest,info)
 
     rec_list = []
     # print import_list
@@ -86,6 +85,9 @@ def main():
             rec = realign(r,chans,args.fs)
             rec['data'] -= rec['data'].mean(axis=0)
             rec_list.append(rec)
+        
+    info['recordings'] = [{k:v for k,v in rec.items() if k is not 'data'} for rec in rec_list]
+    save_info(dest,info)
 
     weights = calc_weights(rec_list) if args.weighted else None
 
