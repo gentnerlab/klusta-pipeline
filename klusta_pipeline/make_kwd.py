@@ -5,7 +5,7 @@ import glob
 from klusta_pipeline.maps import port_site
 from klusta_pipeline.dataio import load_recordings, load_catlog
 from klusta_pipeline.dataio import save_info, save_recording, save_chanlist, save_probe, save_parameters
-from klusta_pipeline.utils import get_import_list, validate_merge, realign, calc_weights, do_war, do_car
+from klusta_pipeline.utils import get_import_list, validate_merge, realign, calc_weights, do_war, do_car, realign_methods
 from klusta_pipeline.probe import get_channel_groups, clean_dead_channels, build_geometries
 
 # assume spike2 export to mat with the following parameters:
@@ -15,21 +15,23 @@ def get_args():
 
     parser = argparse.ArgumentParser(description='Compile Spike2 epoch .mat files into KlustaKwik KWD file.')
     parser.add_argument('rig',type=str, 
-                       help='defines the rig that the data was collected on')
+                       help='defines the rig that the data was collected on. Options include: %s' % (str(port_site.keys())))
     parser.add_argument('probe',type=str, 
-                       help='defines the probe that the data was collected on')
+                       help="defines the probe that the data was collected on. Options include ['A1x32-Poly3-6mm-50', 'A1x16-5mm-50']")
+    # TODO: change probe.py so that import and automatic update of the documentation is possible
     parser.add_argument('path', default = './', nargs='?',
                        help='directory containing all of the mat files to compile')
     parser.add_argument('dest', default = './', nargs='?',
                        help='destination directory for kwd and other files')
     parser.add_argument('-s','--sampling_rate',dest='fs',type=float, default=None,
-                       help='target sampling rate for waveform alignment')
+                       help='target sampling rate for waveform alignment. Defaults to None. If None, uses recording sampling rate')
     parser.add_argument('-c','--common_average_ref',dest='car',action='store_true',
                        help='turns on common average referencing')
     parser.add_argument('-w','--weighted',dest='weighted',action='store_true',
                        help='weights channels for common average referencing')
     parser.add_argument('-x','--drop',dest='omit',type=str, default='',
                        help='comma-separate list of channel labels to drop if they exist')
+    parser.add_argument('-a','--align',dest='realignment',type=str, default='spline', help='sets realignment method. Options include: %s' % (str(realign_methods.keys())))
 
     return parser.parse_args()
 
@@ -76,13 +78,13 @@ def main():
         'probe': args.probe,
     }
     save_parameters(info['params'],dest)
-
+    
     rec_list = []
     # print import_list
     for import_file in import_list:
         recordings = load_recordings(import_file,chans)
         for r in recordings:
-            rec = realign(r,chans,args.fs)
+            rec = realign(r,chans,args.fs,args.realignment)
             rec['data'] -= rec['data'].mean(axis=0)
             rec_list.append(rec)
         

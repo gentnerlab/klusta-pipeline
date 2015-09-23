@@ -143,16 +143,54 @@ def do_car(data):
         car_data[:,ch] = waveform-common_av
     return car_data
 
-def realign(r,chans,fs):
+def spline_realign(r,chans,fs,start,stop):
+    '''spline realignment.
+    realigns each channel using InterpolatedUnivariateSpline
+    r: dictionary containing raw data keyed by channel label
+    chans: channel labels
+    fs: sampling frequency (Hz)
+    '''
+    t_new = np.arange(start,stop,1.0/fs)
+    realigned_data = np.empty((len(t_new), len(chans) ), np.int16)
 
+    for ch,lbl in enumerate(chans):
+        spline = interpolate.InterpolatedUnivariateSpline(r[lbl]['times'], r[lbl]['values'])
+        realigned_data[:,ch] = spline(t_new)
+    return realigned_data    
+    
+def no_realign(r,chans,fs,start,stop):
+    '''no realignment.
+    truncates data so that all channels are the same length. 
+    assumes that each sample of each channel occurs at simultaneous absolute time
+    r: dictionary containing raw data keyed by channel label
+    chans: channel labels
+    fs: sampling frequency (Hz)
+    '''
+    raw_length = np.amin([len(r[lbl]['times']) for lbl in chans])
+    realigned_data = np.empty((raw_length, len(chans)), np.int16)
+	
+    for ch,lbl in enumerate(chans):
+        realigned_data[:,ch] = r[lbl]['values'][0:raw_length]
+    return realigned_data
+
+realign_methods = {
+    'none':no_realign,
+    'spline':spline_realign,
+}
+    
+def realign(r,chans,fs,method):
+    '''Realignment wrapper.
+    calls appropriate realignment method.
+    r: dictionary containing raw data keyed by channel label
+    chans: channel labels
+    fs: sampling frequency (Hz)
+    method: string containing the desired realignment method
+    '''
+	
     start = np.amax([r[lbl]['times'][0] for lbl in chans])
     stop = np.amin([r[lbl]['times'][-1] for lbl in chans])
-    t_new = np.arange(start,stop,1.0/fs)
-
-    shape = len(t_new), len(chans) 
-
+    
     rec = {
-        'data': np.empty(shape,np.int16),
         'name': '',
         'description': '',
         'file_origin': r['file_origin'],
@@ -160,10 +198,7 @@ def realign(r,chans,fs):
         'fs': fs,
     }
 
-    for ch,lbl in enumerate(chans):
-        spline = interpolate.InterpolatedUnivariateSpline(r[lbl]['times'], r[lbl]['values'])
-        rec['data'][:,ch] = spline(t_new)
-
+    rec['data'] = realign_methods[method](r, chans, fs, start, stop)
     return rec
 
 def subsample_data(data,npts=1000000,axis=0):
