@@ -13,6 +13,7 @@ setup(
     entry_points={
         'console_scripts': [
             'make_kwd = klusta_pipeline.make_kwd:main',
+            'merge_stim_kwik = klusta_pipeline.merge_stim_kwik:main',
             'display_probe = klusta_pipeline.probe:_display'
         ],
     },

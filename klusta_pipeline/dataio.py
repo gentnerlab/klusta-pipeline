@@ -5,6 +5,7 @@ from pprint import pformat
 from string import Template
 from shutil import copyfile
 import h5py as h5
+import numpy as np
 from klusta_pipeline import MAX_CHANS, TEMPLATE_DIR
 from klusta_pipeline.utils import chunkit, get_info
 from klusta_pipeline.probe import get_channel_groups, clean_dead_channels, build_geometries
@@ -66,12 +67,31 @@ def load_recordings(s2mat,chans):
         recordings += recs
     return recordings
 
+def load_digmark(s2mat):
+    with h5.File(s2mat, 'r') as f:
+        times = np.array(f['DigMark']['times']).T.squeeze()
+        codes = np.array([str(unichr(c)) for c in f['DigMark']['codes'][0,:]])
+    assert len(codes)==len(times)
+    return codes, times
+
+def get_textmark(char_array):
+    return ''.join([chr(xi) for xi in char_array]).replace('\x00', '')
+
+def load_stim_info(s2mat):
+    with h5.File(s2mat, 'r') as f:
+        times = np.array(f['stimulus_textmark']['times']).T.squeeze()
+        codes = np.array([c for c in f['stimulus_textmark']['codes'][0,:]])
+        names = np.array([get_textmark(x) for x in np.transpose(f['stimulus_textmark']['text'])])
+    assert len(codes)==len(times)
+    assert len(codes)==len(names)
+    return codes, times, names
+
 def save_recording(kwd,rec,index):
     with h5.File(kwd, 'a') as kwd_f:
         print ' saving recordings/%i/data...' % index
         kwd_f.create_dataset('recordings/%i/data' % index, data=rec['data'])
         print ' saved!'
-            
+
 def save_chanlist(kwd_dir,chans,port_map):
     chanfile = os.path.join(kwd_dir,'indx_port_site.txt')
     with open(chanfile,'w') as f:
