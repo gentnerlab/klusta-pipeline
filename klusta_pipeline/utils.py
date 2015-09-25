@@ -15,17 +15,21 @@ def validate_merge(import_list,omit):
     chans = [ch for ch in chans if ch not in omit]
     for s2mat in import_list:
         mat_chans=[]
+        interval = None
         with h5.File(s2mat, 'r') as f:
             for ch in chans:
                 try:
                     chan_data = f[ch]
                     mat_chans.append(ch)
+                    assert interval is None or interval == chan_data['interval'][0], "intervals don't match between channels in %s ... something seems wrong" % (s2mat)
+                    interval = chan_data['interval'][0]
                 except KeyError:
                     continue
         mat_data.append(
             {
                 'chans': mat_chans,
                 'name': s2mat,
+                'interval': interval
             }
         )
     assert len(mat_data)>0, 'No mat files found'

@@ -69,7 +69,14 @@ def main():
     save_chanlist(dest,chans,port_map)
     save_probe(args.probe,chans,port_map,dest)
 
-    fs = 1.0 / mat_data[0][chans[0]]['interval'] if args.fs is None else args.fs
+    if args.fs is None:
+        interval = None
+        for rec in mat_data:
+            assert interval is None or interval == rec['interval'], "intervals don't match between all the recordings... something seems wrong"
+            interval = rec['interval']
+        fs = 1.0 / interval
+    else:
+        fs = args.fs
 
     info['params'] = {
         'exp': info['name'],
