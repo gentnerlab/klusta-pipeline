@@ -37,7 +37,7 @@ def main():
         info = json.load(f)
 
     kwik_data_file = os.path.join(kwik_folder,info['name']+'.kwik')
-    kwd_raw_file = os.path.join(kwik_folder,info['name']+'.raw.kwd')
+    kwd_raw_file = os.path.join(kwik_folder,info['name']+'.raw.kwd')\
 
     with tables.open_file(kwik_data_file,'r+') as kkfile:
 
@@ -49,10 +49,22 @@ def main():
         stimulus_codes = []
         stimulus_names = []
 
+        spike_recording_obj = kkfile.get_node('/channel_groups/0/spikes','recording')
+        spike_time_samples_obj = kkfile.get_node('/channel_groups/0/spikes','time_samples')
+
+        spike_recording = spike_recording_obj.read()
+        spike_time_samples = spike_time_samples_obj.read()
+
         for rr, rec in enumerate(info['recordings']):
+            n_samps = get_rec_samples(kwd_raw_file,rr)
+
+            rec_mask = (spike_recording >= rr) * (spike_time_samples >= n_samps)
+            print rec_mask.sum()
+            spike_recording[rec_mask] = rr + 1
+            spike_time_samples[rec_mask] -= n_samps
+
             t0 = rec['start_time']
             fs = rec['fs']
-            n_samps = get_rec_samples(kwd_raw_file,rr)
             dur = float(n_samps) / fs
 
             s2mat = os.path.split(rec['file_origin'])[-1]
@@ -113,3 +125,6 @@ def main():
         kkfile.create_earray("/event_types/Stimulus", 'recording', obj=stimulus_recording)
         kkfile.create_earray("/event_types/Stimulus", 'codes', obj=stimulus_codes)
         kkfile.create_earray("/event_types/Stimulus", 'text', obj=stimulus_names)
+
+        spike_recording_obj[:] = spike_recording
+        spike_time_samples_obj[:] = spike_time_samples
