@@ -13,6 +13,25 @@ try: import simplejson as json
 except ImportError: import json
 
 def parse_catlog_line(line):
+    '''
+    Parses one line in the catlog file to return a tuple of parameters.
+
+    Parameters
+    ----------
+    line : string
+        One `line` in the catlog file.
+
+    Returns
+    -------
+    smrx : str
+        Description of anonymous integer return value.
+    duration : float
+        Length of the file in seconds.
+    mb : float
+        Size of the file in Mb.
+    nchan : int
+        Number of recorded channels.
+    '''
     file_info = line.strip().split(',')
     smrx = file_info[0].strip('"')
     duration  = float(file_info[1])
@@ -21,6 +40,19 @@ def parse_catlog_line(line):
     return smrx,duration,mb,nchan
 
 def read_catlog(f):
+    '''
+    Reads the catlog file handler to yield export info.
+
+    Parameters
+    ----------
+    f : int
+        File handler
+
+    Returns
+    -------
+    exports : list
+        List of dicts containing parameters for each of the lines in the catlog file.
+    '''
     exports = []
     for line in f:
         smrx,duration,mb,nchan = parse_catlog_line(line)
@@ -35,6 +67,19 @@ def read_catlog(f):
     return exports
 
 def load_catlog(catlog):
+    '''
+    Reads the catlog file and returns export info.
+
+    Parameters
+    ----------
+    catlog : str
+        String containing path of catlog file.
+
+    Returns
+    -------
+    exports : list
+        List of dicts containing parameters for each of the lines in the catlog file.
+    '''
     with open(catlog,'r') as f:
         exports = read_catlog(f)
     return exports
@@ -71,7 +116,7 @@ def save_recording(kwd,rec,index):
         print ' saving recordings/%i/data...' % index
         kwd_f.create_dataset('recordings/%i/data' % index, data=rec['data'])
         print ' saved!'
-            
+
 def save_chanlist(kwd_dir,chans,port_map):
     chanfile = os.path.join(kwd_dir,'indx_port_site.txt')
     with open(chanfile,'w') as f:
