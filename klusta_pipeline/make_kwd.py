@@ -75,6 +75,7 @@ def main():
             assert interval is None or interval == rec['interval'], "intervals don't match between all the recordings... something seems wrong"
             interval = rec['interval']
         fs = 1.0 / interval
+        fs = fs.tolist()
     else:
         fs = args.fs
 
