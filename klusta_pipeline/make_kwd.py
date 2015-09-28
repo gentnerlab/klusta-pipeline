@@ -72,10 +72,9 @@ def main():
     if args.fs is None:
         interval = None
         for rec in mat_data:
-            assert interval is None or interval == rec['interval'], "intervals don't match between all the recordings... something seems wrong"
-            interval = rec['interval']
+            assert interval is None or interval == rec['interval'][0], "intervals don't match between all the recordings... something seems wrong"
+            interval = rec['interval'][0]
         fs = 1.0 / interval
-        fs = fs.tolist()
     else:
         fs = args.fs
 
@@ -92,7 +91,7 @@ def main():
     for import_file in import_list:
         recordings = load_recordings(import_file,chans)
         for r in recordings:
-            rec = realign(r,chans,args.fs,args.realignment)
+            rec = realign(r,chans,fs,args.realignment)
             rec['data'] -= rec['data'].mean(axis=0)
             rec_list.append(rec)
         
