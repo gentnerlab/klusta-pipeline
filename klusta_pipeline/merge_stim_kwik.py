@@ -53,7 +53,7 @@ def merge_recording_info(klu_path,mat_path):
     for import_file in import_list:
         recordings = load_recordings(import_file,chans)
         for r in recordings:
-            rec = realign(r,chans,fs)
+            rec = realign(r,chans,fs,'spline')
             del rec['data']
             rec_list.append(rec)
 
