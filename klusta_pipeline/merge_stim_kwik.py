@@ -11,7 +11,7 @@ import glob
 try: import simplejson as json
 except ImportError: import json
 
-from klusta_pipeline.dataio import load_recordings, save_info
+from klusta_pipeline.dataio import load_recordings, save_info, load_digmark, load_stim_info
 from klusta_pipeline.utils import get_import_list, validate_merge, realign
 
 def get_args():
@@ -27,36 +27,8 @@ def get_rec_samples(kwd_file,index):
     with h5.File(kwd_file, 'r') as kwd:
         return kwd['/recordings/{}/data'.format(index)].shape[0]
 
-def find_recordings(mat_path,info):
-    from klusta_pipeline.dataio import save_info
-    from klusta_pipeline.utils import get_import_list, validate_merge, realign
-
-    import_list = get_import_list(mat_path,info['exports'])
-    for item in import_list:
-        assert os.path.exists(item), item
-
-    mat_data = validate_merge(import_list,info['omit'])
-    fs = info['params']['fs']
-
-    chans = set(mat_data[0]['chans'])
-    for d2 in mat_data[1:]:
-        chans = chans.intersection(d2['chans'])
-    chans = list(chans)
-
-    for i,m in zip(info['exports'],mat_data):
-        i['chans'] = chans
-
-    rec_list = []
-    for import_file in import_list:
-        recordings = kp.load_recordings(import_file,chans)
-        for r in recordings:
-            rec = kp.realign(r,chans,fs)
-            del rec['data']
-            rec_list.append(rec)
-
-    return rec_list
-
 def merge_recording_info(klu_path,mat_path):
+    batch = klu_path.split('__')[-1]
     with open(os.path.join(klu_path,batch+'_info.json')) as f:
         info = json.load(f)
 
