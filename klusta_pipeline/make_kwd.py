@@ -83,6 +83,7 @@ def main():
         'fs': fs,
         'nchan': len(chans),
         'probe': args.probe,
+        'realignment': args.realignment,
     }
     save_parameters(info['params'],dest)
     
