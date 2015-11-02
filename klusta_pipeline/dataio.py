@@ -78,10 +78,17 @@ def get_textmark(char_array):
     return ''.join([chr(xi) for xi in char_array]).replace('\x00', '')
 
 def load_stim_info(s2mat):
-    with h5.File(s2mat, 'r') as f:
-        times = np.array(f['stimulus_textmark']['times']).T.squeeze()
-        codes = np.array([c for c in f['stimulus_textmark']['codes'][0,:]])
-        names = np.array([get_textmark(x) for x in np.transpose(f['stimulus_textmark']['text'])])
+    try:
+        with h5.File(s2mat, 'r') as f:
+	    times = np.array(f['stimulus_textmark']['times']).T.squeeze()
+            codes = np.array([c for c in f['stimulus_textmark']['codes'][0,:]])
+            names = np.array([get_textmark(x) for x in np.transpose(f['stimulus_textmark']['text'])])
+    except KeyError:
+        with h5.File(s2mat, 'r') as f:
+            times = np.array(f['stimulus_']['times']).T.squeeze()
+            codes = np.array([c for c in f['stimulus_']['codes'][0,:]])
+            names = np.array([get_textmark(x) for x in np.transpose(f['stimulus_']['text'])])
+
     assert len(codes)==len(times)
     assert len(codes)==len(names)
     return codes, times, names
