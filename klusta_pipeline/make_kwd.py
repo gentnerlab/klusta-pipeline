@@ -33,6 +33,10 @@ def get_args():
                        help='comma-separate list of channel labels to drop if they exist')
     parser.add_argument('-a','--align',dest='realignment',type=str, default='spline', help='sets realignment method. Options include: %s' % (str(realign_methods.keys())))
 
+    parser.add_argument('--upper',dest='upper_thresh',type=float,default=4.5,help='Sets the upper threshold in std for spike detektion')
+    parser.add_argument('--lower',dest='lower_thresh',type=float,default=2,help='Sets the lower threshold in std for spike detektion')
+    parser.add_argument('--prespike',dest='prespike',type=int, default=16,help='Sets the number of samples to take prior to spike peak')
+    parser.add_argument('--postspike',dest='postspike',type=int,default=16,help='Sets the number of samples to take after spike peak')
     return parser.parse_args()
 
 def main():
@@ -78,11 +82,20 @@ def main():
     else:
         fs = args.fs
 
+    # Should have command line argument give pre and post in milliseconds, and then convert to samples. 
+    # We'll do that later
+    prespike_samps = args.prespike
+    postspike_samps = args.postspike
+
     info['params'] = {
         'exp': info['name'],
         'fs': fs,
         'nchan': len(chans),
         'probe': args.probe,
+        'upper_thresh' : upper_thresh,
+        'lower_thresh': lower_thresh,
+        'prespike': prespike_samps,
+        'postspike': postspike_samps
     }
     save_parameters(info['params'],dest)
     
