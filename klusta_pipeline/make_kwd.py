@@ -2,6 +2,7 @@
 import os
 import argparse
 import glob
+import numpy as np
 from klusta_pipeline.maps import port_site
 from klusta_pipeline.dataio import load_recordings, load_catlog
 from klusta_pipeline.dataio import save_info, save_recording, save_chanlist, save_probe, save_parameters
@@ -93,7 +94,7 @@ def main():
         recordings = load_recordings(import_file,chans)
         for r in recordings:
             rec = realign(r,chans,fs,args.realignment)
-            rec['data'] -= rec['data'].mean(axis=0)
+            rec['data'] -= rec['data'].mean(axis=0).astype(np.int16)
             rec_list.append(rec)
         
     info['recordings'] = [{k:v for k,v in rec.items() if k is not 'data'} for rec in rec_list]
