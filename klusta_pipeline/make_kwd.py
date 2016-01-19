@@ -99,11 +99,6 @@ def main():
     }
     save_parameters(info['params'],dest)
     
-    }
-    save_parameters(info['params'],dest)
-    }
-    save_parameters(info['params'],dest)
-    
     rec_list = []
     # print import_list
     for import_file in import_list:
