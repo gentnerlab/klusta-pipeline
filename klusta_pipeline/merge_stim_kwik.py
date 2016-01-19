@@ -11,7 +11,8 @@ import glob
 try: import simplejson as json
 except ImportError: import json
 
-from klusta_pipeline.dataio import load_digmark, load_stim_info
+from klusta_pipeline.dataio import load_recordings, save_info, load_digmark, load_stim_info
+from klusta_pipeline.utils import get_import_list, validate_merge, realign
 
 def get_args():
 
@@ -25,6 +26,41 @@ def get_args():
 def get_rec_samples(kwd_file,index):
     with h5.File(kwd_file, 'r') as kwd:
         return kwd['/recordings/{}/data'.format(index)].shape[0]
+
+def merge_recording_info(klu_path,mat_path):
+    batch = klu_path.split('__')[-1]
+    with open(os.path.join(klu_path,batch+'_info.json')) as f:
+        info = json.load(f)
+
+    assert 'recordings' not in info
+
+    import_list = get_import_list(mat_path,info['exports'])
+    for item in import_list:
+        assert os.path.exists(item), item
+
+    mat_data = validate_merge(import_list,info['omit'])
+    fs = info['params']['fs']
+
+    chans = set(mat_data[0]['chans'])
+    for d2 in mat_data[1:]:
+        chans = chans.intersection(d2['chans'])
+    chans = list(chans)
+
+    for i,m in zip(info['exports'],mat_data):
+        i['chans'] = chans
+
+    rec_list = []
+    for import_file in import_list:
+        recordings = load_recordings(import_file,chans)
+        for r in recordings:
+            rec = realign(r,chans,fs,'spline')
+            del rec['data']
+            rec_list.append(rec)
+
+    info['recordings'] = [{k:v for k,v in rec.items() if k is not 'data'} for rec in rec_list]
+    save_info(klu_path,info)
+    return info
+
 
 def main():
     args = get_args()
@@ -54,6 +90,12 @@ def main():
 
         spike_recording = spike_recording_obj.read()
         spike_time_samples = spike_time_samples_obj.read()
+
+        try:
+            assert 'recordings' in info
+        except AssertionError:
+            info = merge_recording_info(kwik_folder,spike2mat_folder)
+
 
         for rr, rec in enumerate(info['recordings']):
             n_samps = get_rec_samples(kwd_raw_file,rr)
