@@ -62,11 +62,7 @@ def merge_recording_info(klu_path,mat_path):
     return info
 
 
-def main():
-    args = get_args()
-
-    spike2mat_folder = os.path.abspath(args.path)
-    kwik_folder = os.path.abspath(args.dest)
+def merge(spike2mat_folder, kwik_folder):
 
     info_json = glob.glob(os.path.join(kwik_folder,'*_info.json'))[0]
     with open(info_json, 'r') as f:
@@ -75,7 +71,7 @@ def main():
     kwik_data_file = os.path.join(kwik_folder,info['name']+'.kwik')
     kwd_raw_file = os.path.join(kwik_folder,info['name']+'.raw.kwd')\
 
-    with tables.open_file(kwik_data_file,'r+') as kkfile:
+    with tables.open_file(kwik_data_file, 'r+') as kkfile:
 
         digmark_timesamples = []
         digmark_recording = []
@@ -110,7 +106,7 @@ def main():
             dur = float(n_samps) / fs
 
             s2mat = os.path.split(rec['file_origin'])[-1]
-            s2mat = os.path.join(spike2mat_folder,s2mat)
+            s2mat = os.path.join(spike2mat_folder, s2mat)
 
             codes, times = load_digmark(s2mat)
             rec_mask = (times >= t0) * (times < (t0+dur))
@@ -170,3 +166,16 @@ def main():
 
         spike_recording_obj[:] = spike_recording
         spike_time_samples_obj[:] = spike_time_samples
+
+
+def main():
+    args = get_args()
+    spike2mat_folder = os.path.abspath(args.path)
+    kwik_folder = os.path.abspath(args.dest)
+    merge(spike2mat_folder, kwik_folder)
+
+
+if __name__ == '__main__':
+    main()
+
+
