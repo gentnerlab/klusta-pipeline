@@ -93,12 +93,24 @@ def merge(spike2mat_folder, kwik_folder):
             info = merge_recording_info(kwik_folder,spike2mat_folder)
 
 
-        for rr, rec in enumerate(info['recordings']):
-            n_samps = get_rec_samples(kwd_raw_file,rr)
+        order = np.sort([str(ii) for ii in range(len(info['recordings']))])
+        print order
 
-            rec_mask = (spike_recording >= rr) * (spike_time_samples >= n_samps)
+        done = []
+        for rr,rid_str in enumerate(order):
+            # rr: index of for-loop
+            # rid: recording id
+            # rid_str: string form of recording id
+            rid = int(rid_str)
+            rec = info['recordings'][rid_str]
+
+            n_samps = get_rec_samples(kwd_raw_file,rid)
+
+            is_done = np.vectorize(lambda x: x not in done)
+
+            rec_mask = is_done(spike_recording) * (spike_time_samples >= n_samps)
             print rec_mask.sum()
-            spike_recording[rec_mask] = rr + 1
+            spike_recording[rec_mask] = order[rr+1]
             spike_time_samples[rec_mask] -= n_samps
 
             t0 = rec['start_time']
@@ -133,6 +145,8 @@ def merge(spike2mat_folder, kwik_folder):
             stimulus_recording.append(recording)
             stimulus_codes.append(codes)
             stimulus_names.append(names)
+
+            done.append(rid)
 
         digmark_timesamples = np.concatenate(digmark_timesamples)
         digmark_recording = np.concatenate(digmark_recording)
