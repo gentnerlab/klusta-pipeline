@@ -95,23 +95,27 @@ def merge(spike2mat_folder, kwik_folder):
 
         order = np.sort([str(ii) for ii in range(len(info['recordings']))])
         print order
-
-        done = []
+	print len(spike_recording)
+        is_done = np.zeros(spike_recording.shape,np.bool_)
         for rr,rid_str in enumerate(order):
             # rr: index of for-loop
             # rid: recording id
             # rid_str: string form of recording id
             rid = int(rid_str)
-            rec = info['recordings'][rid_str]
+            rec = info['recordings'][rid]
 
             n_samps = get_rec_samples(kwd_raw_file,rid)
 
-            is_done = np.vectorize(lambda x: x not in done)
+            #is_done = np.vectorize(lambda x: x not in done)
 
-            rec_mask = is_done(spike_recording) * (spike_time_samples >= n_samps)
-            print rec_mask.sum()
-            spike_recording[rec_mask] = order[rr+1]
-            spike_time_samples[rec_mask] -= n_samps
+            todo = ~is_done & (spike_time_samples >= n_samps)
+            print "rec {}: {} spikes done".format(rid,is_done.sum())
+            print "setting {} spikes to next cluster".format(todo.sum())
+            if todo.sum()>0:
+                spike_recording[todo] = int(order[rr+1])
+                spike_time_samples[todo] -= n_samps
+            is_done = is_done | ~todo
+            print is_done.sum()
 
             t0 = rec['start_time']
             fs = rec['fs']
@@ -126,7 +130,7 @@ def merge(spike2mat_folder, kwik_folder):
             codes = codes[rec_mask]
             times = times[rec_mask] - t0
             time_samples = (times * fs).round().astype(np.uint64)
-            recording = rr * np.ones(codes.shape,np.uint16)
+            recording = rid * np.ones(codes.shape,np.uint16)
 
             digmark_timesamples.append(time_samples)
             digmark_recording.append(recording)
@@ -139,14 +143,12 @@ def merge(spike2mat_folder, kwik_folder):
             names = names[rec_mask]
             times = times[rec_mask] - t0
             time_samples = (times * fs).round().astype(np.uint64)
-            recording = rr * np.ones(codes.shape,np.uint16)
+            recording = rid * np.ones(codes.shape,np.uint16)
 
             stimulus_timesamples.append(time_samples)
             stimulus_recording.append(recording)
             stimulus_codes.append(codes)
             stimulus_names.append(names)
-
-            done.append(rid)
 
         digmark_timesamples = np.concatenate(digmark_timesamples)
         digmark_recording = np.concatenate(digmark_recording)
