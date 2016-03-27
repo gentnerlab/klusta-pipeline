@@ -39,3 +39,4 @@ port_site = {
 port_site['ibon32'] = port_site['paukstis32']
 port_site['bodegh16'] = {'Port_%d' % (i+1) : i+1 for i in range(16) }
 port_site['burung16'] = port_site['bodegh16']
+port_site['burung32'] = {'Port_%d' % (i+1) : i+1 for i in range(32) }
