@@ -56,8 +56,8 @@ def get_channel_groups(probe,s):
             }
         }
 
-	# probes A1x32-Poly3-xmm-25s-yyy
-	elif 'A1x32-Poly3' in probe and '25s' in probe:
+    # probes A1x32-Poly3-xmm-25s-yyy
+    elif 'A1x32-Poly3' in probe and '25s' in probe:
         channel_groups = {
             # Shank index.
             0: {   
