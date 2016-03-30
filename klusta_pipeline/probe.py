@@ -102,6 +102,52 @@ def get_channel_groups(probe,s):
             }
         }
 
+    # probes A1x32-Edge-xmm-20s-yyy
+    elif 'A1x32-Edge' in probe and '20' in probe:
+        channel_groups = {
+            # Shank index.
+            0: {   
+                # List of channels to keep for spike detection.
+                'channels': s.values(),
+
+                # 2D positions of the channels
+                'geometry': {
+                    s[1]: (0, 0), # column 1
+                    s[2]: (0,20), 
+                    s[3]: (0,40),
+                    s[4]: (0,60),
+                    s[5]: (0,80),
+                    s[6]: (0,100),
+                    s[7]: (0,120),
+                    s[8]: (0,140),
+                    s[9]: (0,160),
+                    s[10]: (0,180),
+                    s[11]: (0,200),
+                    s[12]: (0,220), 
+                    s[13]: (0, 240), # column 0
+                    s[14]: (0, 260), 
+                    s[15]: (0, 280), 
+                    s[16]: (0, 300), 
+                    s[17]: (0, 320), 
+                    s[18]: (0, 340), 
+                    s[19]: (0, 360), 
+                    s[20]: (0, 380), 
+                    s[21]: (0, 400),  
+                    s[22]: (0, 420),   
+                    s[23]: (0,440), # column 3
+                    s[24]: (0, 460), 
+                    s[25]: (0, 480), 
+                    s[26]: (0, 500), 
+                    s[27]: (0, 520), 
+                    s[28]: (0, 540), 
+                    s[29]: (0, 560), 
+                    s[30]: (0, 580), 
+                    s[31]: (0, 600),  
+                    s[32]: (0, 620)
+                }
+            }
+        }
+
     elif probe=='A1x16-5mm-50':
         channel_groups = {
             # Shank index.
