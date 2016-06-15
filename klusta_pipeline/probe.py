@@ -178,6 +178,36 @@ def get_channel_groups(probe,s):
                 }
             }
         }
+    elif probe=='A1x16-5mm-50-177-H16':
+        channel_groups = {
+            # Shank index.
+            0: {   
+                # List of channels to keep for spike detection.
+                'channels': s.values(),
+                
+                # 2D positions of the channels, in microns.
+                # NOTE: For visualization purposes
+                # in KlustaViewa, the unit doesn't matter.
+                'geometry': {
+                    s[1]: (0, 0),
+                    s[16]: (0, 50),
+                    s[2]: (0, 100),
+                    s[15]: (0, 150),
+                    s[3]: (0, 200),
+                    s[14]: (0, 250),
+                    s[4]: (0, 300),
+                    s[13]: (0, 350),
+                    s[5]: (0, 400),
+                    s[12]: (0, 450),
+                    s[6]: (0, 500),
+                    s[11]: (0, 550),
+                    s[7]: (0, 600),
+                    s[10]: (0, 650),
+                    s[8]: (0, 700),
+                    s[9]: (0, 750),
+                }
+            }
+        }
     else:
         raise Exception('probe not found')
 
