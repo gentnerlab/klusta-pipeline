@@ -62,6 +62,24 @@ port_site = {
         'Port_31': 21,
         'Port_32': 20,
     },
+    'paukstis16-ec': {
+        'Port_1': 14,
+        'Port_2': 15,
+        'Port_3': 16,
+        'Port_4': 1,
+        'Port_5': 2,
+        'Port_6': 3,
+        'Port_7': 4,
+        'Port_8': 5,
+        'Port_9': 13,
+        'Port_10': 12,
+        'Port_11': 11,
+        'Port_12': 10,
+        'Port_13': 9,
+        'Port_14': 8,
+        'Port_15': 7,
+        'Port_16': 6,
+    },
 }
 port_site['ibon32'] = port_site['paukstis32']
 port_site['bodegh16'] = {'Port_%d' % (i+1) : i+1 for i in range(16) }
