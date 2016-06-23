@@ -86,7 +86,8 @@ port_site['bodegh16'] = {'Port_%d' % (i+1) : i+1 for i in range(16) }
 port_site['burung16'] = port_site['bodegh16']
 
 # Burung system with 32 channels trhough amps 2, 3, with no adapter
-port_site['burung32'] = {'Port_%d' % (i+1+16) : i+1 for i in range(32)} 
+burung32_No_Adapter = {'Port_%d' % (i+1+16) : i+1 for i in range(32)} 
 
 # Buring system with the A32 adapter for neuronexus probes
-port_site['burung32-A32-HST32V'] = apply_adapter(port_site['burung32'], site_headstage['A32-HST32V'])
+port_site['burung32-A32-HST32V'] = apply_adapter(burung32_No_Adapter, site_headstage['A32-HST32V'])
+port_site['burung32'] = port_site['burung32-A32-HST32V']
