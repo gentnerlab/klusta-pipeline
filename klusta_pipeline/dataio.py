@@ -40,7 +40,7 @@ def load_catlog(catlog):
         exports = read_catlog(f)
     return exports
 
-def read_recordings(f,chans):
+def read_recordings(f,chans, inc_times=True):
     s2mat_recordings = []
     for ch in chans:
         chan_data = f[ch]
@@ -48,7 +48,9 @@ def read_recordings(f,chans):
         values = chan_data['values'][0]
         fs = 1.0 / chan_data['interval'][0]
         for ii, (t,v) in enumerate(chunkit(times,values)):
-            d = {ch: {'times':t,'values':v,'fs':fs}}
+            d = {ch: {'values':v,'fs':fs, 'start':t[0], 'stop':t[-1], 'length':len(t)}}
+            if inc_times:
+                d[ch]['times'] = t
             try:
                 s2mat_recordings[ii].update(d)
             except IndexError:
@@ -57,11 +59,11 @@ def read_recordings(f,chans):
         print '  %s' % ch
     return s2mat_recordings
 
-def load_recordings(s2mat,chans):
+def load_recordings(s2mat,chans, inc_times=True):
     recordings = []
     print 'Loading %s' % s2mat
     with h5.File(s2mat, 'r') as f:
-        recs = read_recordings(f,chans)
+        recs = read_recordings(f,chans, inc_times=inc_times)
         for r in recs:
             r.update(file_origin=s2mat)
         recordings += recs

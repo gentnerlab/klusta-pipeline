@@ -105,12 +105,12 @@ def main():
     rec_list = []
     # print import_list
     for import_file in import_list:
-        recordings = load_recordings(import_file,chans)
+        recordings = load_recordings(import_file,chans, inc_times=(args.realignment is 'spline'))
         for r in recordings:
             rec = realign(r,chans,fs,args.realignment)
             rec['data'] -= rec['data'].mean(axis=0).astype(np.int16)
             rec_list.append(rec)
-        
+    del recordings
     info['recordings'] = [{k:v for k,v in rec.items() if k is not 'data'} for rec in rec_list]
     save_info(dest,info)
 
