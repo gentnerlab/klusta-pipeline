@@ -3,6 +3,7 @@ import os
 import argparse
 import glob
 import numpy as np
+import datetime, resource
 from klusta_pipeline.maps import port_site
 from klusta_pipeline.dataio import load_recordings, load_catlog
 from klusta_pipeline.dataio import save_info, save_recording, save_chanlist, save_probe, save_parameters
@@ -32,8 +33,8 @@ def get_args():
                        help='weights channels for common average referencing')
     parser.add_argument('-x','--drop',dest='omit',type=str, default='',
                        help='comma-separate list of channel labels to drop if they exist')
-    parser.add_argument('-a','--align',dest='realignment',type=str, default='spline', help='sets realignment method. Options include: %s' % (str(realign_methods.keys())))
-
+    parser.add_argument('-a','--align',dest='realignment',type=str, default='spline', 
+                       help='sets realignment method. Options include: %s' % (str(realign_methods.keys())))
     parser.add_argument('--upper',dest='upper_thresh',type=float,default=4.5,help='Sets the upper threshold in std for spike detektion')
     parser.add_argument('--lower',dest='lower_thresh',type=float,default=2,help='Sets the lower threshold in std for spike detektion')
     parser.add_argument('--prespike',dest='prespike',type=float, default=0.8,help='Sets the time in milliseconds to take prior to spike peak')
@@ -42,6 +43,8 @@ def get_args():
 
 def main():
     args = get_args()
+    tstart = datetime.datetime.now()
+
     path = os.path.abspath(args.path)
     dest = os.path.abspath(args.dest)
 
@@ -120,6 +123,9 @@ def main():
             rec['data'] = do_car(rec['data'])
 
         save_recording(kwd,rec,indx)
+
+    print 'peak memory usage: %f GB' % (resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024. / 1024.)
+    print 'time: %s' % (datetime.datetime.now() - tstart)
 
 if __name__ == '__main__':
     main()
