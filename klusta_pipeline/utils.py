@@ -170,7 +170,7 @@ def no_realign(r,chans,fs,start,stop):
     chans: channel labels
     fs: sampling frequency (Hz)
     '''
-    raw_length = np.amin([len(r[lbl]['times']) for lbl in chans])
+    raw_length = np.amin([r[lbl]['length'] for lbl in chans])
     realigned_data = np.empty((raw_length, len(chans)), np.int16)
 	
     for ch,lbl in enumerate(chans):
@@ -191,8 +191,8 @@ def realign(r,chans,fs,method):
     method: string containing the desired realignment method
     '''
 	
-    start = np.amax([r[lbl]['times'][0] for lbl in chans])
-    stop = np.amin([r[lbl]['times'][-1] for lbl in chans])
+    start = np.amax([r[lbl]['start'] for lbl in chans])
+    stop = np.amin([r[lbl]['stop'] for lbl in chans])
     
     rec = {
         'name': '',
@@ -207,15 +207,23 @@ def realign(r,chans,fs,method):
 
 def subsample_data(data,npts=1000000,axis=0):
     pts = data.shape[0]
-    indx = sample(range(pts), npts) if pts > npts else range(pts)
+    indx = sample(xrange(pts), npts) if pts > npts else range(pts)
     return data[indx,:]
+
+def subsample_index(data_lengths, sample_pts=1000000):
+    data_pts = np.sum(data_lengths)
+    counts = np.zeroes(len(data_lengths))
+    for i in np.random.choice(xrange(len(data_lengths)), size=sample_pts, p=np.array(data_lengths)/data_pts):
+        counts[i] += 1 
+    for i in xrange(len(data_lengths)):
+        counts[i] = min(counts[i], data_lengths[i])
+    return [np.random.choice(xrange(length), size=count, replace=False) for length, count in zip(data_lengths, counts)]
 
 def calc_weights(rec_list):
     linreg = LinearRegression()
-    data = np.vstack(tuple(r['data'] for r in rec_list))
+    idxs = subsample_index([len(r['data']) for r in rec_list])
+    data = np.vstack(tuple(r['data'][idx] for r, idx in zip(rec_list, idxs)))
     coeffs = []
-    
-    data = subsample_data(data)
 
     for ch,waveform in enumerate(data.T):
         X = np.vstack((data.T[:ch,:],data.T[ch+1:,:]))
