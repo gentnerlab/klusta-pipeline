@@ -212,7 +212,7 @@ def subsample_data(data,npts=1000000,axis=0):
 
 def subsample_index(data_lengths, sample_pts=1000000):
     data_pts = np.sum(data_lengths)
-    counts = np.zeroes(len(data_lengths))
+    counts = np.zeros(len(data_lengths))
     for i in np.random.choice(xrange(len(data_lengths)), size=sample_pts, p=np.array(data_lengths)/data_pts):
         counts[i] += 1 
     for i in xrange(len(data_lengths)):
