@@ -23,7 +23,7 @@ with h5.File(s2mat, 'r') as f:
 				if (chunk+1)*chunksize < nsamps:
 					t_data[:, chnum] = f[chan]['values'][0, chunk*chunksize:(chunk+1)*chunksize]
 				else:
-					t_data = np.zeros(nsamps - chunk*chunksize, nchans)
+					t_data = np.zeros((nsamps - chunk*chunksize, nchans))
 					t_data = f[chan]['values'][0, chunk*chunksize:]
 				t_data_bin = t_data.astype(np.int16).tobytes()
 				outfile.write(t_data_bin)
