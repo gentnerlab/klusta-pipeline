@@ -208,6 +208,48 @@ def get_channel_groups(probe,s):
                 }
             }
         }
+    elif probe=='Buzsaki32':
+        channel_groups = {}
+        for i in range(4):
+            channel_groups[i] = {'channels': s.values()}
+            channel_groups[i]['geometry'] = {
+                s[5 + i*8]: (0 + 200 * i, 0),
+                s[4 + i*8]: (-8.5 + 200 * i, 20),
+                s[6 + i*8]: (8.5 + 200 * i, 40),
+                s[3 + i*8]: (-12.5 + 200 * i, 60),
+                s[7 + i*8]: (12.5 + 200 * i, 80),
+                s[2 + i*8]: (-16.5 + 200 * i, 100),
+                s[8 + i*8]: (16.5 + 200 * i, 120),
+                s[1 + i*8]: (-20.5 + 200 * i, 140),
+            }
+    elif 'a4x4-4mm200' in probe:
+        channel_groups = {}
+        for i in range(4):
+            channel_groups[i] = {'channels': s.values()}
+        channel_groups[0]['geometry'] = {
+            s[6]: (0,0),
+            s[2]: (0,200),
+            s[3]: (0,400),
+            s[1]: (0,600),
+        }
+        channel_groups[1]['geometry'] = {
+            s[5]: (200,0),
+            s[8]: (200,200),
+            s[4]: (200,400),
+            s[7]: (200,600),
+        }
+        channel_groups[2]['geometry'] = {
+            s[9]: (400,0),
+            s[12]: (400,200),
+            s[10]: (400,400),
+            s[13]: (400,600),
+        }
+        channel_groups[3]['geometry'] = {
+            s[15]: (600,0),
+            s[11]: (600,200),
+            s[16]: (600,400),
+            s[14]: (600,600),
+        }
     else:
         raise Exception('probe not found')
 
