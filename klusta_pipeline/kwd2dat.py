@@ -33,10 +33,9 @@ def main():
     assert len(glob.glob(os.path.join(path, '*.raw.kwd'))) == 1, "Error finding .raw.kwd file in {}".format(path)
     kwd = glob.glob(os.path.join(path, '*.raw.kwd'))[0]
     name = os.path.split(kwd)[-1].split('.')[0]
-    out_dat = os.path.join(dest, name + 'mar.bin')
+    out_dat = os.path.join(dest, name + '.dat')
     if args.chunk:
         print "Exporting to binary using chunked version"
-        out_dat = os.path.join(dest, name + 'raw.bin')
         print "Output file: {}".format(out_dat)
         if args.chans == '':
             print "Channels: all channels"
