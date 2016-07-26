@@ -211,7 +211,7 @@ def get_channel_groups(probe,s):
     elif probe=='Buzsaki32':
         channel_groups = {}
         for i in range(4):
-            channel_groups[i] = {'channels': s.values()}
+            channel_groups[i] = {}
             channel_groups[i]['geometry'] = {
                 s[5 + i*8]: (0 + 200 * i, 0),
                 s[4 + i*8]: (-8.5 + 200 * i, 20),
@@ -222,10 +222,11 @@ def get_channel_groups(probe,s):
                 s[8 + i*8]: (16.5 + 200 * i, 120),
                 s[1 + i*8]: (-20.5 + 200 * i, 140),
             }
+            channel_groups[i]['channels'] = channel_groups[i]['geometry'].keys()
     elif 'a4x4-4mm200' in probe:
         channel_groups = {}
         for i in range(4):
-            channel_groups[i] = {'channels': s.values()}
+            channel_groups[i] = {}
         channel_groups[0]['geometry'] = {
             s[6]: (0,0),
             s[2]: (0,200),
@@ -250,6 +251,8 @@ def get_channel_groups(probe,s):
             s[16]: (600,400),
             s[14]: (600,600),
         }
+        for i in range(4):
+            channel_groups[i]['channels'] = channel_groups[i]['geometry'].keys()
     else:
         raise Exception('probe not found')
 
