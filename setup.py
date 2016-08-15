@@ -17,7 +17,8 @@ setup(
             'display_probe = klusta_pipeline.probe:_display',
             'kwd2dat = klusta_pipeline.kwd2dat:main',
             'make_mat_chanMap = klusta_pipeline.make_mat_chanMap:main',
-            'make_kilo_scripts = klusta_pipeline.make_kilo_scripts:main'
+            'make_kilo_scripts = klusta_pipeline.make_kilo_scripts:main',
+            'kilo2kwik = klusta_pipeline.kilo2kwik:main'
         ],
     },
 )
