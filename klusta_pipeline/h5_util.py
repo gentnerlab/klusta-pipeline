@@ -16,7 +16,6 @@ def h5_wrap(h5_function):
             h5_file = h5py.File(h5_file, 'r')
         logging.debug('H5 file: {}'.format(h5_file))
         return_value = h5_function(h5_file, *args, **kwargs)
-        h5_file.close()
         return return_value
 
     return file_checker
