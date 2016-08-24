@@ -158,10 +158,10 @@ def get_rec_sizes(kwd_file):
 
 @h5_wrap
 def get_rec_starts(kwd_file):
-    rec_list = get_rec_list(kwd_file)
-    rec_starts = {i: get_data_size(kwd_file, rec_list[i - 1])
-                  for i in range(1, rec_list.size)}
-    rec_starts[0] = 0
+    rec_sizes= get_rec_sizes(kwd_file)
+    starts_vec = np.array(rec_sizes.values()).cumsum()
+    starts_vec = np.hstack([0, starts_vec[:-1]])
+    rec_starts = {rec: r_start for r_start, rec in zip(starts_vec, rec_sizes.iterkeys())}
     return rec_starts
 
 def load_grp_file(grp_file_path):
