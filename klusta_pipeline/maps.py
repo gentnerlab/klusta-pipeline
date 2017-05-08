@@ -80,7 +80,8 @@ port_site = {
         'Port_15': 6,
         'Port_16': 5,
     },
-    'ibon16-dk': {
+    #A2x2-tet-3mm-150-312
+    'ibon16-dk-tet': {
     'Port_1': 12,
     'Port_2': 9,
     'Port_3': 1,
@@ -98,7 +99,27 @@ port_site = {
     'Port_15': 13,
     'Port_16': 16,
     },
+    #A1x16-5mm-50-177-H16
+    'ibon16-dk': {
+    'Port_1': 5,
+    'Port_2': 3,
+    'Port_3': 15,
+    'Port_4': 1,
+    'Port_5': 2,
+    'Port_6': 16,
+    'Port_7': 4,
+    'Port_8': 6,
+    'Port_9': 9,
+    'Port_10': 11,
+    'Port_11': 13,
+    'Port_12': 7,
+    'Port_13': 8,
+    'Port_14': 14,
+    'Port_15': 12,
+    'Port_16': 10,
+    },
 }
+
 port_site['ibon32'] = port_site['paukstis32']
 port_site['bodegh16'] = {'Port_%d' % (i+1) : i+1 for i in range(16) }
 port_site['burung16'] = port_site['bodegh16']

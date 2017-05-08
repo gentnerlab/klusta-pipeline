@@ -181,7 +181,7 @@ def get_channel_groups(probe,s):
                 }
             }
         }
-        #probe A2x2-tet-3mm-150-312
+        #probes A2x2-tet-3mm-150-312
             elif probe=='A2x2-tet-3mm-150-312':
         channel_groups = {
             # Shank index.
@@ -205,12 +205,8 @@ def get_channel_groups(probe,s):
             }
             
             1: {
-            # List of channels to keep for spike detection.
                 'channels': s.values(),
                 
-                # 2D positions of the channels, in microns.
-                # NOTE: For visualization purposes
-                # in KlustaViewa, the unit doesn't matter.
                 'geometry': {
                     s[12]: (150, 0),
                     s[13]: (150, 150),
