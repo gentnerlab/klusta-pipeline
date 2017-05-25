@@ -1,6 +1,9 @@
 from scipy import spatial
 import itertools
 from klusta_pipeline import MAX_CHANS
+import numpy as np 
+
+
 
 def load_sitemap(sitelist):
     # site:channel
@@ -179,6 +182,45 @@ def get_channel_groups(probe,s):
                 }
             }
         }
+        #probes A2x2-tet-3mm-150-312
+            elif probe=='A2x2-tet-3mm-150-312':
+        channel_groups = {
+            # Shank index.
+            0: {   
+                # List of channels to keep for spike detection.
+                'channels': s.values(),
+                
+                # 2D positions of the channels, in microns.
+                # NOTE: For visualization purposes
+                # in KlustaViewa, the unit doesn't matter.
+                'geometry': {
+                    s[2]: (0, 0),
+                    s[1]: (0, 150),
+                    s[3]: (-18, 18),
+                    s[6]: (-18, 168),
+                    s[5]: (0, 35),
+                    s[4]: (0, 185),
+                    s[7]: (18, 18),
+                    s[8]: (18, 168),
+                }
+            }
+            
+            1: {
+                'channels': s.values(),
+                
+                'geometry': {
+                    s[12]: (150, 0),
+                    s[13]: (150, 150),
+                    s[10]: (132, 18),
+                    s[9]: (132, 168),
+                    s[15]: (150, 35),
+                    s[16]: (150, 185),
+                    s[14]: (168, 18),
+                    s[11]: (168, 168),
+                }
+            }
+        }
+
     elif probe=='A1x16-5mm-50-177-H16':
         channel_groups = {
             # Shank index.
