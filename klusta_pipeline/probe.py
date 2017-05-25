@@ -1,4 +1,5 @@
 from scipy import spatial
+import itertools
 from klusta_pipeline import MAX_CHANS
 
 def load_sitemap(sitelist):
@@ -253,6 +254,13 @@ def get_channel_groups(probe,s):
         }
         for i in range(4):
             channel_groups[i]['channels'] = channel_groups[i]['geometry'].keys()
+    elif 'a1x32-10mm50' in probe:
+        channel_groups = {
+            0: {
+                'channels': s.values(),
+                'geometry': {s[i]: (0, idx*50) for idx, i in enumerate(itertools.chain(*zip(range(1, 17), range(32, 16, -1))))},
+            }
+        }
     else:
         raise Exception('probe not found')
 
