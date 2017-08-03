@@ -94,8 +94,8 @@ def merge(spike2mat_folder, kwik_folder):
 
 
         order = np.sort([str(ii) for ii in range(len(info['recordings']))])
-        print order
-	print len(spike_recording)
+        print(order)
+        print(len(spike_recording))
         is_done = np.zeros(spike_recording.shape,np.bool_)
         for rr,rid_str in enumerate(order):
             # rr: index of for-loop
@@ -109,13 +109,13 @@ def merge(spike2mat_folder, kwik_folder):
             #is_done = np.vectorize(lambda x: x not in done)
 
             todo = ~is_done & (spike_time_samples >= n_samps)
-            print "rec {}: {} spikes done".format(rid,is_done.sum())
-            print "setting {} spikes to next cluster".format(todo.sum())
+            print("rec {}: {} spikes done".format(rid,is_done.sum()))
+            print("setting {} spikes to next cluster".format(todo.sum()))
             if todo.sum()>0:
                 spike_recording[todo] = int(order[rr+1])
                 spike_time_samples[todo] -= n_samps
             is_done = is_done | ~todo
-            print is_done.sum()
+            print(is_done.sum())
 
             t0 = rec['start_time']
             fs = rec['fs']
@@ -158,13 +158,13 @@ def merge(spike2mat_folder, kwik_folder):
         stimulus_codes = np.concatenate(stimulus_codes)
         stimulus_names = np.concatenate(stimulus_names)
 
-        print digmark_timesamples.dtype
-        print digmark_recording.dtype
-        print digmark_codes.dtype
-        print stimulus_timesamples.dtype
-        print stimulus_recording.dtype
-        print stimulus_codes.dtype
-        print stimulus_names.dtype
+        print(digmark_timesamples.dtype)
+        print(digmark_recording.dtype)
+        print(digmark_codes.dtype)
+        print(stimulus_timesamples.dtype)
+        print(stimulus_recording.dtype)
+        print(stimulus_codes.dtype)
+        print(stimulus_names.dtype)
 
         kkfile.create_group("/", "event_types", "event_types")
 
@@ -193,5 +193,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-

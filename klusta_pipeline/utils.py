@@ -84,16 +84,16 @@ def get_file_info(filename):
             datetime = dt.datetime.strptime(filename[7:22],'%m%d%y_%H-%M-%S').ctime()
         )
     elif filename.startswith('Sub'):
-        print filename
+        print(filename)
         datestr = filename.split('_')[1]
         d.update(
             datetime = dt.datetime.strptime(datestr,'%m-%d-%y+%H-%M-%S').ctime(),
         )
     else:
-        pass 
-    
+        pass
+
     return d
-        
+
 def get_info(smrx):
     ''' takes the full path to an smrx file and returns experimental metadata'''
     path = smrx.split('\\')
@@ -106,7 +106,7 @@ def get_info(smrx):
         file = get_file_info(filename),
     )
     return d
-    
+
 def get_import_list(export,info):
     import_list = []
     for item in info:
@@ -138,7 +138,7 @@ def chunkit(t,v):
         yield t,v
 
 def do_car(data):
-    '''common average reference. 
+    '''common average reference.
     for each channel, subtract off the mean of the other channels
     '''
     car_data = np.empty(data.shape,data.dtype)
@@ -160,11 +160,11 @@ def spline_realign(r,chans,fs,start,stop):
     for ch,lbl in enumerate(chans):
         spline = interpolate.InterpolatedUnivariateSpline(r[lbl]['times'], r[lbl]['values'])
         realigned_data[:,ch] = spline(t_new)
-    return realigned_data    
-    
+    return realigned_data
+
 def no_realign(r,chans,fs,start,stop):
     '''no realignment.
-    truncates data so that all channels are the same length. 
+    truncates data so that all channels are the same length.
     assumes that each sample of each channel occurs at simultaneous absolute time
     r: dictionary containing raw data keyed by channel label
     chans: channel labels
@@ -172,7 +172,7 @@ def no_realign(r,chans,fs,start,stop):
     '''
     raw_length = np.amin([r[lbl]['length'] for lbl in chans])
     realigned_data = np.empty((raw_length, len(chans)), np.int16)
-	
+
     for ch,lbl in enumerate(chans):
         realigned_data[:,ch] = r[lbl]['values'][0:raw_length]
     return realigned_data
@@ -181,7 +181,7 @@ realign_methods = {
     'none':no_realign,
     'spline':spline_realign,
 }
-    
+
 def realign(r,chans,fs,method):
     '''Realignment wrapper.
     calls appropriate realignment method.
@@ -190,10 +190,10 @@ def realign(r,chans,fs,method):
     fs: sampling frequency (Hz)
     method: string containing the desired realignment method
     '''
-	
+
     start = np.amax([r[lbl]['start'] for lbl in chans])
     stop = np.amin([r[lbl]['stop'] for lbl in chans])
-    
+
     rec = {
         'name': '',
         'description': '',
@@ -214,7 +214,7 @@ def subsample_index(data_lengths, sample_pts=1000000):
     data_pts = np.sum(data_lengths)
     counts = np.zeros(len(data_lengths))
     for i in np.random.choice(xrange(len(data_lengths)), size=sample_pts, p=np.array(data_lengths)/float(data_pts)):
-        counts[i] += 1 
+        counts[i] += 1
     for i in xrange(len(data_lengths)):
         counts[i] = min(counts[i], data_lengths[i])
     return [np.random.choice(xrange(length), size=count, replace=False) for length, count in zip(data_lengths, counts)]
@@ -232,7 +232,7 @@ def calc_weights(rec_list):
     return coeffs
 
 def do_war(data,weights):
-    '''common average reference. 
+    '''common average reference.
     for each channel, subtract off the weighted average of the other channels
     '''
     car_data = np.empty(data.shape,data.dtype)

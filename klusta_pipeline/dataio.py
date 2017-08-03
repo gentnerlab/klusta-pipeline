@@ -54,14 +54,14 @@ def read_recordings(f,chans, inc_times=True):
             try:
                 s2mat_recordings[ii].update(d)
             except IndexError:
-                print ' rec %i (%0.2f seconds long)' % (ii,t[-1]-t[0])
+                print(' rec %i (%0.2f seconds long)' % (ii,t[-1]-t[0]))
                 s2mat_recordings.append(d)
-        print '  %s' % ch
+        print('  %s' % ch)
     return s2mat_recordings
 
 def load_recordings(s2mat,chans, inc_times=True):
     recordings = []
-    print 'Loading %s' % s2mat
+    print('Loading %s' % s2mat)
     with h5.File(s2mat, 'r') as f:
         recs = read_recordings(f,chans, inc_times=inc_times)
         for r in recs:
@@ -72,7 +72,7 @@ def load_recordings(s2mat,chans, inc_times=True):
 def load_digmark(s2mat):
     with h5.File(s2mat, 'r') as f:
         times = np.array(f['DigMark']['times']).T.squeeze()
-        codes = np.array([str(unichr(c)) for c in f['DigMark']['codes'][0,:]])
+        codes = np.array([str(chr(c)) for c in f['DigMark']['codes'][0,:]])
     assert len(codes)==len(times)
     return codes, times
 
@@ -82,7 +82,7 @@ def get_textmark(char_array):
 def load_stim_info(s2mat):
     try:
         with h5.File(s2mat, 'r') as f:
-	    times = np.array(f['stimulus_textmark']['times']).T.squeeze()
+            times = np.array(f['stimulus_textmark']['times']).T.squeeze()
             codes = np.array([c for c in f['stimulus_textmark']['codes'][0,:]])
             names = np.array([get_textmark(x) for x in np.transpose(f['stimulus_textmark']['text'])])
     except KeyError:
@@ -97,16 +97,16 @@ def load_stim_info(s2mat):
 
 def save_recording(kwd,rec,index):
     with h5.File(kwd, 'a') as kwd_f:
-        print ' saving recordings/%i/data...' % index
+        print(' saving recordings/%i/data...' % index)
         kwd_f.create_dataset('recordings/%i/data' % index, data=rec['data'])
-        print ' saved!'
+        print(' saved!')
 
 def save_chanlist(kwd_dir,chans,port_map):
     chanfile = os.path.join(kwd_dir,'indx_port_site.txt')
     with open(chanfile,'w') as f:
         for ch,port in enumerate(chans):
             f.write("%i,%s,%i\n" % (ch,port,port_map[port]))
-    print 'chans saved to %s' % chanfile
+    print('chans saved to %s' % chanfile)
 
 def save_probe(probe,chans,port_map,export):
 
