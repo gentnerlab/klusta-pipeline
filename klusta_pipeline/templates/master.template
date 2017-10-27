@@ -19,7 +19,7 @@ try
 	rez = fullMPMU(ops, rez, DATA);% extract final spike times (overlapping extraction)
 
 	% posthoc merge templates (under construction)
-	%     rez = merge_posthoc2(rez);
+	rez = merge_posthoc2(rez);
 
 	% save matlab results file
 	save(fullfile(ops.root,  'rez.mat'), 'rez', '-v7.3');
