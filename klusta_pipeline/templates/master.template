@@ -15,8 +15,8 @@ try
 	end
 	%
 	[rez, DATA, uproj] = preprocessData(ops); % preprocess data and extract spikes for initialization
-	rez = fitTemplates(ops, rez, DATA, uproj);  % fit templates iteratively
-	rez = fullMPMU(ops, rez, DATA);% extract final spike times (overlapping extraction)
+	rez = fitTemplates(rez, DATA, uproj);  % fit templates iteratively
+	rez = fullMPMU(rez, DATA);% extract final spike times (overlapping extraction)
 
 	% posthoc merge templates (under construction)
 	rez = merge_posthoc2(rez);
@@ -30,6 +30,7 @@ try
 	% remove temporary file
 	delete(ops.fproc);
 	%%
+	system('touch complete')
 	exit(0)
 catch E
 	exit(-1)

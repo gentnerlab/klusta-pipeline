@@ -183,7 +183,7 @@ def get_channel_groups(probe,s):
             }
         }
         #probes A2x2-tet-3mm-150-312
-            elif probe=='A2x2-tet-3mm-150-312':
+    elif probe=='A2x2-tet-3mm-150-312':
         channel_groups = {
             # Shank index.
             0: {   
@@ -203,7 +203,7 @@ def get_channel_groups(probe,s):
                     s[7]: (18, 18),
                     s[8]: (18, 168),
                 }
-            }
+            },
             
             1: {
                 'channels': s.values(),
@@ -304,7 +304,7 @@ def get_channel_groups(probe,s):
             }
         }
     else:
-        raise Exception('probe not found')
+        raise Exception('probe not found: ' + probe)
 
     return channel_groups
 
