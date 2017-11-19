@@ -39,7 +39,7 @@ def main():
     file_names['kwk'] = os.path.join(dest, name + '.kwik')
 
     k = KwikFile(file_names)
-    k.make_spk_tables()
+    k.make_spk_tables(realign_to_recordings=False)
     k.make_rec_groups()
     k.make_clu_groups()
 

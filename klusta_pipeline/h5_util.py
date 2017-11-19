@@ -230,7 +230,7 @@ class KwikFile:
             kwf.create_group('/channel_groups')
             kwf.create_group('/recordings')
         
-    def make_spk_tables(self):
+    def make_spk_tables(self, realign_to_recordings=True):
         with h5py.File(self.file_names['kwd'], 'r') as kwd:
             rec_sizes = get_rec_sizes(kwd)
             self.rec_kwik, self.spk_kwik = ref_to_rec_starts(rec_sizes, self.spk)
@@ -239,8 +239,11 @@ class KwikFile:
             chan_group = kwf['/channel_groups'].require_group('{}'.format(self.chan_group))
             spikes_group = chan_group.require_group('spikes')
             insert_table(spikes_group, self.rec_kwik.flatten(), 'recording')
-            insert_table(spikes_group, self.spk_kwik.flatten() , 'time_samples')
-            insert_table(spikes_group, self.spk_kwik.flatten() /self.s_f, 'time_fractional')
+            if realign_to_recordings:
+                insert_table(spikes_group, self.spk_kwik.flatten() , 'time_samples')
+                insert_table(spikes_group, self.spk_kwik.flatten() /self.s_f, 'time_fractional')
+            else:
+                insert_table(spikes_group, self.spk.flatten() , 'time_samples')
     
             clusters_group = spikes_group.require_group('clusters')
             insert_table(clusters_group, self.clu, 'main')
