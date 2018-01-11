@@ -1,4 +1,5 @@
 # Functions to do stuff with h5 files
+from __future__ import division
 import numpy as np
 import logging
 import h5py
@@ -142,3 +143,140 @@ def kwd_to_binary(kwd_file, out_file_path, chan_list=None, chunk_size=8000000):
     out_file.close()
     elements_in = np.array(stored_elements).sum()
     logging.info('{} elements written'.format(elements_in))
+
+
+@h5_wrap
+def get_data_size(kwd_file, rec):
+    return get_data_set(kwd_file, rec).shape[0]
+
+@h5_wrap
+def get_rec_sizes(kwd_file):
+    rec_list = get_rec_list(kwd_file)
+    rec_sizes = {i: get_data_size(kwd_file, rec_list[i])
+                 for i in range(0, rec_list.size)}
+    return rec_sizes
+
+@h5_wrap
+def get_rec_starts(kwd_file):
+    rec_sizes= get_rec_sizes(kwd_file)
+    starts_vec = np.array(rec_sizes.values()).cumsum()
+    starts_vec = np.hstack([0, starts_vec[:-1]])
+    rec_starts = {rec: r_start for r_start, rec in zip(starts_vec, rec_sizes.iterkeys())}
+    return rec_starts
+
+def load_grp_file(grp_file_path):
+    return np.loadtxt(grp_file_path, dtype={'names': ('cluster_id', 'group'), 
+                                       'formats': ('i2', 'S8')}, 
+                      skiprows=1)
+
+# offset the recs
+def ref_to_rec_starts(rec_sizes, spk_array):
+    start = 0
+    spk_rec = np.empty_like(spk_array)
+    rec_array = np.empty_like(spk_array)
+    
+    for rec, size in rec_sizes.iteritems():
+        end = start + size
+        this_rec_spk = (spk_array>start) & (spk_array<end)
+        spk_rec[this_rec_spk] = spk_array[this_rec_spk] - start
+        rec_array[this_rec_spk] = rec
+        start = end
+    
+    return rec_array, spk_rec
+
+def insert_table(group, table, name, attr_dict=None):
+    return group.create_dataset(name, data=table)
+
+def insert_group(parent_group, name, attr_dict_list=None):
+    new_group = parent_group.create_group(name)
+    if attr_dict_list is not None:
+        append_atrributes(new_group, attr_dict_list)
+    return new_group
+
+def append_atrributes(h5obj, attr_dict_list):
+    for attr_dict in attr_dict_list:
+        #print attr_dict['name'] + ' {0} - {1}'.format(attr_dict['data'], attr_dict['dtype'])
+        h5obj.attrs.create(attr_dict['name'], attr_dict['data'], dtype=attr_dict['dtype'])
+        #h5obj.attrs.create(attr['name'], attr['data'], dtype=attr['dtype'])
+
+class KwikFile:
+    def __init__(self, file_names, chan_group=0):
+        self.file_names = file_names
+        if file_names['clu']:
+            self.clu = np.squeeze(np.load(file_names['clu']))
+        elif file_names['temp']:
+            self.clu = np.squeeze(np.load(file_names['temp']))
+        else:
+            raise IOError('both spike_clusters.npy and spike_templates.npy weren\'t found')
+        self.spk = np.load(file_names['spk'])
+        if file_names['grp']:
+            self.grp = load_grp_file(file_names['grp'])
+        else:
+            self.grp = [(i, 'unsorted') for i in np.unique(self.clu)]
+        self.rec_kwik = None
+        self.spk_kwik = None
+        self.kwf = None
+        self.chan_group = chan_group
+        
+        with open(file_names['par']) as f:
+            exec(f.read())
+            self.s_f = sample_rate
+        
+        self.create_kwf()
+        
+        
+    def create_kwf(self):
+        with h5py.File(self.file_names['kwk'], 'w') as kwf:
+            kwf.create_group('/channel_groups')
+            kwf.create_group('/recordings')
+        
+    def make_spk_tables(self, realign_to_recordings=True):
+        with h5py.File(self.file_names['kwd'], 'r') as kwd:
+            rec_sizes = get_rec_sizes(kwd)
+            self.rec_kwik, self.spk_kwik = ref_to_rec_starts(rec_sizes, self.spk)
+        
+        with h5py.File(self.file_names['kwk'], 'r+') as kwf:
+            chan_group = kwf['/channel_groups'].require_group('{}'.format(self.chan_group))
+            spikes_group = chan_group.require_group('spikes')
+            insert_table(spikes_group, self.rec_kwik.flatten(), 'recording')
+            if realign_to_recordings:
+                insert_table(spikes_group, self.spk_kwik.flatten() , 'time_samples')
+                insert_table(spikes_group, self.spk_kwik.flatten() /self.s_f, 'time_fractional')
+            else:
+                insert_table(spikes_group, self.spk.flatten() , 'time_samples')
+    
+            clusters_group = spikes_group.require_group('clusters')
+            insert_table(clusters_group, self.clu, 'main')
+            insert_table(clusters_group, self.clu, 'original')
+    
+    def make_rec_groups(self):
+        rec_list = np.unique(self.rec_kwik)
+        rec_start_samples = get_rec_starts(self.file_names['kwd'])
+        
+        with h5py.File(self.file_names['kwk'], 'r+') as kwf:
+            rec_group = kwf.require_group('recordings')
+            for rec in rec_list:
+                rec_name = 'recording_{}'.format(rec)
+                attribs = [{'name': 'name', 'data': rec_name, 'dtype': 'S{}'.format(len(rec_name))}, 
+                          {'name': 'sample_rate', 'data': self.s_f, 'dtype': np.dtype(np.float64)},
+                          {'name': 'start_sample', 'data': rec_start_samples[rec], 'dtype': np.int64},
+                          {'name': 'start_time', 'data': rec_start_samples[rec]/self.s_f, 'dtype': np.float64}]
+                insert_group(rec_group, str(rec), attribs)
+    
+    def make_clu_groups(self, name='main'):
+        clu_grp_dict = {'good': 2,
+                           'mua': 1,
+                           'noise': 0,
+                           'unsorted': 3}
+            
+        with h5py.File(self.file_names['kwk'], 'r+') as kwf:
+            chan_group = kwf['/channel_groups'].require_group('{}'.format(self.chan_group))
+            clusters_group = chan_group.require_group('clusters')
+            desc_group = clusters_group.require_group(name)
+            
+            for clu in self.grp:
+                attribs = [{'name': 'cluster_group', 
+                            'data': clu_grp_dict[clu[1]], 
+                            'dtype': np.int64}]
+                
+                insert_group(desc_group, str(clu[0]), attribs)
