@@ -16,6 +16,7 @@ setup(
             'merge_stim_kwik = klusta_pipeline.merge_stim_kwik:main',
             'display_probe = klusta_pipeline.probe:_display',
             'kwd2dat = klusta_pipeline.kwd2dat:main',
+            'kwd2mda = klusta_pipeline.kwd2mda:main',
             'make_mat_chanMap = klusta_pipeline.make_mat_chanMap:main',
             'make_kilo_scripts = klusta_pipeline.make_kilo_scripts:main',
             'kilo2kwik = klusta_pipeline.kilo2kwik:main'
