@@ -1,16 +1,21 @@
 #!/usr/bin/env python
-import argparse, os, glob
-import datetime, resource
-from string import Template
-from klusta_pipeline import TEMPLATE_DIR
+"""Extract spiketimes from mountainsort MDA to kwik file
+"""
+import argparse
+import os
+import glob
+import datetime
+import resource
+from mdaio import readmda
 from h5_util import KwikFile
 
 def get_args():
-    parser = argparse.ArgumentParser(description='Compile KWD file into flat binary .dat file for kilosort.')
+    parser = argparse.ArgumentParser(description='Extract spiketimes from mountainsort MDA to kwik file')
     parser.add_argument('path', default='./', nargs='?',
-                        help='kilo directory containing the npy file to convert')
+                        help='mountainsort folder containing mda file to convert')
     parser.add_argument('dest', default='./', nargs='?',
-                        help='destination kwd directory for kwik file')
+                        help='desination kwd directory for kwik file')
+    parser.add_argument('--mda-filename', dest='mda_filename', type=str, default='firings.mda')
     return parser.parse_args()
 
 def main():
@@ -20,12 +25,8 @@ def main():
     path = os.path.abspath(args.path)
     dest = os.path.abspath(args.dest)
 
-    file_names = {'clu': 'spike_clusters.npy',
-             'spk': 'spike_times.npy',
-              'grp': 'cluster_groups.csv',
-              'par': 'params.py',
-              'temp': 'spike_templates.npy',
-             }
+    file_names = {'mda': args.mda_filename,
+                  'param': 'params.json'}
 
     for file_type in file_names:
         if len(glob.glob(os.path.join(path, file_names[file_type]))) == 1:

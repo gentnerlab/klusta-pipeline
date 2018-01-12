@@ -3,6 +3,8 @@ from __future__ import division
 import numpy as np
 import logging
 import h5py
+import json
+from mdaio import readmda
 
 
 def h5_wrap(h5_function):
@@ -202,26 +204,37 @@ def append_atrributes(h5obj, attr_dict_list):
 class KwikFile:
     def __init__(self, file_names, chan_group=0):
         self.file_names = file_names
-        if file_names['clu']:
-            self.clu = np.squeeze(np.load(file_names['clu']))
-        elif file_names['temp']:
-            self.clu = np.squeeze(np.load(file_names['temp']))
-        else:
-            raise IOError('both spike_clusters.npy and spike_templates.npy weren\'t found')
-        self.spk = np.load(file_names['spk'])
-        if file_names['grp']:
+
+        if file_names['mda']:
+            spikes = readmda(file_names['mda']).astype(int)
+            self.spk = spikes[1,:] - 1 # really, 1 indexing?
+            self.clu = spikes[2,:]
+            with open(file_names['param'], 'r') as f:
+                params = json.load(f)
+            self.s_f = params['samplerate']
+
+        else: # its a kilosort conversion
+            if file_names['clu']:
+                self.clu = np.squeeze(np.load(file_names['clu']))
+            elif file_names['temp']:
+                self.clu = np.squeeze(np.load(file_names['temp']))
+            else:
+                raise IOError('both spike_clusters.npy and spike_templates.npy weren\'t found')
+            self.spk = np.load(file_names['spk'])
+            
+            with open(file_names['par'], 'r') as f:
+                exec(f.read())
+                self.s_f = sample_rate
+        
+        if 'grp' in file_names and file_names['grp']:
             self.grp = load_grp_file(file_names['grp'])
         else:
             self.grp = [(i, 'unsorted') for i in np.unique(self.clu)]
+
         self.rec_kwik = None
         self.spk_kwik = None
         self.kwf = None
         self.chan_group = chan_group
-        
-        with open(file_names['par']) as f:
-            exec(f.read())
-            self.s_f = sample_rate
-        
         self.create_kwf()
         
         
