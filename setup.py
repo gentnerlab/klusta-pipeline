@@ -19,6 +19,7 @@ setup(
             'kwd2mda = klusta_pipeline.kwd2mda:main',
             'make_mat_chanMap = klusta_pipeline.make_mat_chanMap:main',
             'make_kilo_scripts = klusta_pipeline.make_kilo_scripts:main',
+            'make_mtn_config = klusta_pipeline.make_mtn_config:main',
             'kilo2kwik = klusta_pipeline.kilo2kwik:main',
             'mda2kwik = klusta_pipeline.mda2kwik:main'
         ],
