@@ -16,7 +16,8 @@ def get_args():
                         help='Sample rate (default: 20000)')
     parser.add_argument('--radius', dest='adjacency_radius', type=int, default=-1,
                         help='Adjacency radius (default: -1)')
-
+    parser.add_argument('--klusta', dest='klusta_dir', type=str, default='',
+                        help='klusta directory to load sample rate from. Overrides --rate option')
     return parser.parse_args()
 
 def main():
@@ -25,7 +26,16 @@ def main():
     dest = os.path.abspath(args.dest)
 
     output_args = vars(args)
-    del output_args['dest']
+    output_args = {key:output_args[key] for key in ('detect_sign', 'samplerate', 'adjacency_radius')}
+
+    if args.klusta_dir:
+        klusta_dir = os.path.abspath(args.klusta_dir)
+        params_file = os.path.join(klusta_dir, 'params.prm')
+        with open(params_file, 'r') as f:
+            contents = f.read()
+        metadata = {}
+        exec(contents, {}, metadata)
+        output_args['samplerate'] = metadata['traces']['sample_rate']
 
     with open(os.path.join(dest, 'params.json'), 'w') as output:
 
