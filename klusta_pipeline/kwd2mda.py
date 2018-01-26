@@ -16,7 +16,7 @@ def get_args():
     parser.add_argument('path', default='./', nargs='?',
                         help='directory containing the *.raw.kwd file to extract')
     parser.add_argument('dest', default='./', nargs='?',
-                        help='destination directory for .mda file')
+                        help='destination directory for raw.mda file')
     return parser.parse_args()
 
 
@@ -29,8 +29,7 @@ def main():
 
     assert len(glob.glob(os.path.join(path, '*.raw.kwd'))) == 1, "Error finding .raw.kwd file in {}".format(path)
     kwd = glob.glob(os.path.join(path, '*.raw.kwd'))[0]
-    name = os.path.split(kwd)[-1].split('.')[0]
-    out_mda = os.path.join(dest, name + '.mda')
+    out_mda = os.path.join(dest, 'raw.mda')
 
     n_chans = -1
     n_samples = 0
