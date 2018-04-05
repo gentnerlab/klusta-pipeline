@@ -217,7 +217,7 @@ def subsample_index(data_lengths, sample_pts=1000000):
         counts[i] += 1 
     for i in xrange(len(data_lengths)):
         counts[i] = min(counts[i], data_lengths[i])
-    return [np.random.choice(xrange(length), size=count, replace=False) for length, count in zip(data_lengths, counts)]
+    return [np.random.choice(xrange(length), size=int(count), replace=False) for length, count in zip(data_lengths, counts)]
 
 def calc_weights(rec_list):
     linreg = LinearRegression()
