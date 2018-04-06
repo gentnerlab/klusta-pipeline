@@ -240,3 +240,12 @@ def do_war(data,weights):
         X = np.vstack((data.T[:ch,:],data.T[ch+1:,:]))
         car_data[:,ch] = waveform - X.T.dot(w)
     return car_data
+
+def do_inplace_chunked_war(data, weights, gigs_chunksize=.5):
+    transform = np.eye(data.shape[1])
+    for i, c in enumerate(weights):
+        transform[transform[:,i]==0,i] = -c
+
+    chunks = np.linspace(0, data.shape[0], int(data.nbytes*gigs_chunksize/1024/1024/1024)+1, dtype=int)
+    for start, end in zip(chunks[:-1], chunks[1:]):
+        data[start:end,:] = data[start:end,:].dot(transform)

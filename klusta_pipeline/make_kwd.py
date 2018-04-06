@@ -7,7 +7,7 @@ import datetime, resource
 from klusta_pipeline.maps import port_site
 from klusta_pipeline.dataio import load_recordings, load_catlog
 from klusta_pipeline.dataio import save_info, save_recording, save_chanlist, save_probe, save_parameters
-from klusta_pipeline.utils import get_import_list, validate_merge, realign, calc_weights, do_war, do_car, realign_methods
+from klusta_pipeline.utils import get_import_list, validate_merge, realign, calc_weights, do_inplace_chunked_war, do_car, realign_methods
 from klusta_pipeline.probe import get_channel_groups, clean_dead_channels, build_geometries
 
 # assume spike2 export to mat with the following parameters:
@@ -118,7 +118,7 @@ def main():
 
     for indx, rec in enumerate(rec_list):
         if args.weighted:
-            rec['data'] = do_war(rec['data'],weights)
+            do_inplace_chunked_war(rec['data'], weights)
         elif args.car:
             rec['data'] = do_car(rec['data'])
 
