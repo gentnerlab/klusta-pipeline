@@ -8,37 +8,46 @@ import numpy as np
 import argparse
 import glob
 
-try: import simplejson as json
-except ImportError: import json
+try:
+    import simplejson as json
+except ImportError:
+    import json
 
 from klusta_pipeline.dataio import load_recordings, save_info, load_digmark, load_stim_info
 from klusta_pipeline.utils import get_import_list, validate_merge, realign
 
+
 def get_args():
 
-    parser = argparse.ArgumentParser(description='Compile Spike2 epoch .mat files into KlustaKwik KWD file.')
-    parser.add_argument('path', default = './', nargs='?',
-                       help='directory containing all of the mat files to compile')
-    parser.add_argument('dest', default = './', nargs='?',
-                       help='destination directory for kwd and other files')
+    parser = argparse.ArgumentParser(
+        description='Compile Spike2 epoch .mat files into KlustaKwik KWD file.')
+    parser.add_argument(
+        'path',
+        default='./',
+        nargs='?',
+        help='directory containing all of the mat files to compile')
+    parser.add_argument('dest', default='./', nargs='?',
+                        help='destination directory for kwd and other files')
     return parser.parse_args()
 
-def get_rec_samples(kwd_file,index):
+
+def get_rec_samples(kwd_file, index):
     with h5.File(kwd_file, 'r') as kwd:
         return kwd['/recordings/{}/data'.format(index)].shape[0]
 
-def merge_recording_info(klu_path,mat_path):
+
+def merge_recording_info(klu_path, mat_path):
     batch = klu_path.split('__')[-1]
-    with open(os.path.join(klu_path,batch+'_info.json')) as f:
+    with open(os.path.join(klu_path, batch + '_info.json')) as f:
         info = json.load(f)
 
     assert 'recordings' not in info
 
-    import_list = get_import_list(mat_path,info['exports'])
+    import_list = get_import_list(mat_path, info['exports'])
     for item in import_list:
         assert os.path.exists(item), item
 
-    mat_data = validate_merge(import_list,info['omit'])
+    mat_data = validate_merge(import_list, info['omit'])
     fs = info['params']['fs']
 
     chans = set(mat_data[0]['chans'])
@@ -46,30 +55,31 @@ def merge_recording_info(klu_path,mat_path):
         chans = chans.intersection(d2['chans'])
     chans = list(chans)
 
-    for i,m in zip(info['exports'],mat_data):
+    for i, m in zip(info['exports'], mat_data):
         i['chans'] = chans
 
     rec_list = []
     for import_file in import_list:
-        recordings = load_recordings(import_file,chans)
+        recordings = load_recordings(import_file, chans)
         for r in recordings:
-            rec = realign(r,chans,fs,'spline')
+            rec = realign(r, chans, fs, 'spline')
             del rec['data']
             rec_list.append(rec)
 
-    info['recordings'] = [{k:v for k,v in rec.items() if k is not 'data'} for rec in rec_list]
-    save_info(klu_path,info)
+    info['recordings'] = [{k: v for k, v in list(
+        rec.items()) if k is not 'data'} for rec in rec_list]
+    save_info(klu_path, info)
     return info
 
 
 def merge(spike2mat_folder, kwik_folder):
 
-    info_json = glob.glob(os.path.join(kwik_folder,'*_info.json'))[0]
+    info_json = glob.glob(os.path.join(kwik_folder, '*_info.json'))[0]
     with open(info_json, 'r') as f:
         info = json.load(f)
 
-    kwik_data_file = os.path.join(kwik_folder,info['name']+'.kwik')
-    kwd_raw_file = os.path.join(kwik_folder,info['name']+'.raw.kwd')\
+    kwik_data_file = os.path.join(kwik_folder, info['name'] + '.kwik')
+    kwd_raw_file = os.path.join(kwik_folder, info['name'] + '.raw.kwd')\
 
     with tables.open_file(kwik_data_file, 'r+') as kkfile:
 
@@ -81,8 +91,10 @@ def merge(spike2mat_folder, kwik_folder):
         stimulus_codes = []
         stimulus_names = []
 
-        spike_recording_obj = kkfile.get_node('/channel_groups/0/spikes','recording')
-        spike_time_samples_obj = kkfile.get_node('/channel_groups/0/spikes','time_samples')
+        spike_recording_obj = kkfile.get_node(
+            '/channel_groups/0/spikes', 'recording')
+        spike_time_samples_obj = kkfile.get_node(
+            '/channel_groups/0/spikes', 'time_samples')
 
         spike_recording = spike_recording_obj.read()
         spike_time_samples = spike_time_samples_obj.read()
@@ -90,32 +102,31 @@ def merge(spike2mat_folder, kwik_folder):
         try:
             assert 'recordings' in info
         except AssertionError:
-            info = merge_recording_info(kwik_folder,spike2mat_folder)
-
+            info = merge_recording_info(kwik_folder, spike2mat_folder)
 
         order = np.sort([str(ii) for ii in range(len(info['recordings']))])
-        print order
-	print len(spike_recording)
-        is_done = np.zeros(spike_recording.shape,np.bool_)
-        for rr,rid_str in enumerate(order):
+        print(order)
+        print(len(spike_recording))
+        is_done = np.zeros(spike_recording.shape, np.bool_)
+        for rr, rid_str in enumerate(order):
             # rr: index of for-loop
             # rid: recording id
             # rid_str: string form of recording id
             rid = int(rid_str)
             rec = info['recordings'][rid]
 
-            n_samps = get_rec_samples(kwd_raw_file,rid)
+            n_samps = get_rec_samples(kwd_raw_file, rid)
 
             #is_done = np.vectorize(lambda x: x not in done)
 
             todo = ~is_done & (spike_time_samples >= n_samps)
-            print "rec {}: {} spikes done".format(rid,is_done.sum())
-            print "setting {} spikes to next cluster".format(todo.sum())
-            if todo.sum()>0:
-                spike_recording[todo] = int(order[rr+1])
+            print("rec {}: {} spikes done".format(rid, is_done.sum()))
+            print("setting {} spikes to next cluster".format(todo.sum()))
+            if todo.sum() > 0:
+                spike_recording[todo] = int(order[rr + 1])
                 spike_time_samples[todo] -= n_samps
             is_done = is_done | ~todo
-            print is_done.sum()
+            print(is_done.sum())
 
             t0 = rec['start_time']
             fs = rec['fs']
@@ -125,25 +136,25 @@ def merge(spike2mat_folder, kwik_folder):
             s2mat = os.path.join(spike2mat_folder, s2mat)
 
             codes, times = load_digmark(s2mat)
-            rec_mask = (times >= t0) * (times < (t0+dur))
+            rec_mask = (times >= t0) * (times < (t0 + dur))
 
             codes = codes[rec_mask]
             times = times[rec_mask] - t0
             time_samples = (times * fs).round().astype(np.uint64)
-            recording = rid * np.ones(codes.shape,np.uint16)
+            recording = rid * np.ones(codes.shape, np.uint16)
 
             digmark_timesamples.append(time_samples)
             digmark_recording.append(recording)
             digmark_codes.append(codes)
 
             codes, times, names = load_stim_info(s2mat)
-            rec_mask = (times >= t0) * (times < (t0+dur))
+            rec_mask = (times >= t0) * (times < (t0 + dur))
 
             codes = codes[rec_mask]
             names = names[rec_mask]
             times = times[rec_mask] - t0
             time_samples = (times * fs).round().astype(np.uint64)
-            recording = rid * np.ones(codes.shape,np.uint16)
+            recording = rid * np.ones(codes.shape, np.uint16)
 
             stimulus_timesamples.append(time_samples)
             stimulus_recording.append(recording)
@@ -158,27 +169,47 @@ def merge(spike2mat_folder, kwik_folder):
         stimulus_codes = np.concatenate(stimulus_codes)
         stimulus_names = np.concatenate(stimulus_names)
 
-        print digmark_timesamples.dtype
-        print digmark_recording.dtype
-        print digmark_codes.dtype
-        print stimulus_timesamples.dtype
-        print stimulus_recording.dtype
-        print stimulus_codes.dtype
-        print stimulus_names.dtype
+        print(digmark_timesamples.dtype)
+        print(digmark_recording.dtype)
+        print(digmark_codes.dtype)
+        print(stimulus_timesamples.dtype)
+        print(stimulus_recording.dtype)
+        print(stimulus_codes.dtype)
+        print(stimulus_names.dtype)
 
         kkfile.create_group("/", "event_types", "event_types")
 
         kkfile.create_group("/event_types", "DigMark")
-        kkfile.create_earray("/event_types/DigMark", 'time_samples', obj=digmark_timesamples)
-        kkfile.create_earray("/event_types/DigMark", 'recording', obj=digmark_recording)
-        kkfile.create_earray("/event_types/DigMark", 'codes', obj=digmark_codes)
-
+        kkfile.create_earray(
+            "/event_types/DigMark",
+            'time_samples',
+            obj=digmark_timesamples)
+        kkfile.create_earray(
+            "/event_types/DigMark",
+            'recording',
+            obj=digmark_recording)
+        kkfile.create_earray(
+            "/event_types/DigMark",
+            'codes',
+            obj=digmark_codes)
 
         kkfile.create_group("/event_types", "Stimulus")
-        kkfile.create_earray("/event_types/Stimulus", 'time_samples', obj=stimulus_timesamples)
-        kkfile.create_earray("/event_types/Stimulus", 'recording', obj=stimulus_recording)
-        kkfile.create_earray("/event_types/Stimulus", 'codes', obj=stimulus_codes)
-        kkfile.create_earray("/event_types/Stimulus", 'text', obj=stimulus_names)
+        kkfile.create_earray(
+            "/event_types/Stimulus",
+            'time_samples',
+            obj=stimulus_timesamples)
+        kkfile.create_earray(
+            "/event_types/Stimulus",
+            'recording',
+            obj=stimulus_recording)
+        kkfile.create_earray(
+            "/event_types/Stimulus",
+            'codes',
+            obj=stimulus_codes)
+        kkfile.create_earray(
+            "/event_types/Stimulus",
+            'text',
+            obj=stimulus_names)
 
         spike_recording_obj[:] = spike_recording
         spike_time_samples_obj[:] = spike_time_samples
@@ -193,5 +224,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-

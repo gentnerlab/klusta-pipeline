@@ -1,6 +1,8 @@
 import numpy as np
 
-#applies the transformation of sites to headstage introduced by an adapter
+# applies the transformation of sites to headstage introduced by an adapter
+
+
 def apply_adapter(a_port_site, adapter):
     '''
     a_port_site: a dictionary with port: site (mapping channels in a headstage to ports in a recording system)
@@ -9,22 +11,24 @@ def apply_adapter(a_port_site, adapter):
             col 1: site in porbe end
     retunrs: new dictionary with port: mapped_site, where mapped_site is the probe site that connects to that channel instead of site
     '''
-    new_port_site = {port : adapter[adapter[:, 1] == site][0, 0] for port, site in a_port_site.iteritems()}
+    new_port_site = {port: adapter[adapter[:, 1] == site][0, 0]
+                     for port, site in a_port_site.items()}
     return new_port_site
+
 
 # n_site x 2 numpy array
 # col 0: site in headstage end
 # col 1: site in porbe end
 site_headstage = {
     'A32-HST32V': np.transpose(np.array([[11, 9, 7, 5, 3, 2, 6, 8, 10, 12,
-                      1, 4, 13, 14, 15, 16, 
-                      26, 24, 20, 19, 18, 17, 
-                      32, 30, 31, 28, 29, 27, 25, 22, 23, 21], 
-                     [1, 2, 3, 4, 6, 8, 10, 12, 14, 16, 
-                      5, 7, 9, 11, 13, 15,
-                      21, 23, 25, 27, 29, 31,
-                      17, 18, 19, 20, 22, 24, 26, 28, 30, 32]], dtype=np.int)
-    )}
+                                          1, 4, 13, 14, 15, 16,
+                                          26, 24, 20, 19, 18, 17,
+                                          32, 30, 31, 28, 29, 27, 25, 22, 23, 21],
+                                         [1, 2, 3, 4, 6, 8, 10, 12, 14, 16,
+                                          5, 7, 9, 11, 13, 15,
+                                          21, 23, 25, 27, 29, 31,
+                                          17, 18, 19, 20, 22, 24, 26, 28, 30, 32]], dtype=np.int)
+                               )}
 
 # dictionary yields port:site
 port_site = {
@@ -80,53 +84,54 @@ port_site = {
         'Port_15': 6,
         'Port_16': 5,
     },
-    #A2x2-tet-3mm-150-312
+    # A2x2-tet-3mm-150-312
     'ibon16-dk-tet': {
-    'Port_1': 12,
-    'Port_2': 9,
-    'Port_3': 1,
-    'Port_4': 10,
-    'Port_5': 2,
-    'Port_6': 7,
-    'Port_7': 15,
-    'Port_8': 8,
-    'Port_9': 4,
-    'Port_10': 11,
-    'Port_11': 3,
-    'Port_12': 6,
-    'Port_13': 14,
-    'Port_14': 5,
-    'Port_15': 13,
-    'Port_16': 16,
+        'Port_1': 12,
+        'Port_2': 9,
+        'Port_3': 1,
+        'Port_4': 10,
+        'Port_5': 2,
+        'Port_6': 7,
+        'Port_7': 15,
+        'Port_8': 8,
+        'Port_9': 4,
+        'Port_10': 11,
+        'Port_11': 3,
+        'Port_12': 6,
+        'Port_13': 14,
+        'Port_14': 5,
+        'Port_15': 13,
+        'Port_16': 16,
     },
-    #A1x16-5mm-50-177-H16
+    # A1x16-5mm-50-177-H16
     'ibon16-dk': {
-    'Port_1': 5,
-    'Port_2': 3,
-    'Port_3': 15,
-    'Port_4': 1,
-    'Port_5': 2,
-    'Port_6': 16,
-    'Port_7': 4,
-    'Port_8': 6,
-    'Port_9': 9,
-    'Port_10': 11,
-    'Port_11': 13,
-    'Port_12': 7,
-    'Port_13': 8,
-    'Port_14': 14,
-    'Port_15': 12,
-    'Port_16': 10,
+        'Port_1': 5,
+        'Port_2': 3,
+        'Port_3': 15,
+        'Port_4': 1,
+        'Port_5': 2,
+        'Port_6': 16,
+        'Port_7': 4,
+        'Port_8': 6,
+        'Port_9': 9,
+        'Port_10': 11,
+        'Port_11': 13,
+        'Port_12': 7,
+        'Port_13': 8,
+        'Port_14': 14,
+        'Port_15': 12,
+        'Port_16': 10,
     },
 }
 
 port_site['ibon32'] = port_site['paukstis32']
-port_site['bodegh16'] = {'Port_%d' % (i+1) : i+1 for i in range(16) }
+port_site['bodegh16'] = {'Port_%d' % (i + 1): i + 1 for i in range(16)}
 port_site['burung16'] = port_site['bodegh16']
 
 # Burung system with 32 channels trhough amps 2, 3, with no adapter
-burung32_No_Adapter = {'Port_%d' % (i+1+16) : i+1 for i in range(32)} 
+burung32_No_Adapter = {'Port_%d' % (i + 1 + 16): i + 1 for i in range(32)}
 
 # Buring system with the A32 adapter for neuronexus probes
-port_site['burung32-A32-HST32V'] = apply_adapter(burung32_No_Adapter, site_headstage['A32-HST32V'])
+port_site['burung32-A32-HST32V'] = apply_adapter(
+    burung32_No_Adapter, site_headstage['A32-HST32V'])
 port_site['burung32'] = port_site['burung32-A32-HST32V']
