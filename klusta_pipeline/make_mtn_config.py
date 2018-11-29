@@ -41,7 +41,7 @@ def main():
 
         json.dump(output_args, output)
 
-        print 'configurations set'
+        print('configurations set')
 
 if __name__ == '__main__':
     main()
